@@ -1,6 +1,6 @@
 #include <ncurses.h>
 
-#include <utility>
+#include <cctype>
 
 namespace {
 struct Coordinates {
@@ -8,20 +8,27 @@ struct Coordinates {
   int y;
 };
 
-// Prototypes
+enum Inputs {
+  Quit = 'q'
+};
+
 void init_tui();
-auto get_window_dimensions(WINDOW *win) -> Coordinates;
+[[nodiscard]] auto get_window_dimensions(const WINDOW *const win) -> Coordinates;
 } // namespace
 
 auto main() -> int {
   init_tui();
 
-  Coordinates win_dimensions = get_window_dimensions(stdscr);
+  const Coordinates win_dimensions = get_window_dimensions(stdscr);
 
   mvprintw(win_dimensions.y / 4, win_dimensions.x / 2, "tuitris");
   refresh();
-  while (true) {
-  }
+
+  char input;
+  do {
+    const char raw_input = getch();
+    input = std::tolower(raw_input);
+  } while (input != Quit);
 
   endwin();
   return 0;
@@ -36,7 +43,7 @@ void init_tui() {
   keypad(stdscr, true);
 }
 
-auto get_window_dimensions(WINDOW *win) -> Coordinates {
+auto get_window_dimensions(const WINDOW *const win) -> Coordinates {
   int max_y, max_x;
   getmaxyx(win, max_y, max_x);
 
