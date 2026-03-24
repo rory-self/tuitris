@@ -1,18 +1,21 @@
 #include <ncurses.h>
+#include "game.hpp"
 
 #include <cctype>
 
 namespace {
 struct Coordinates {
-  int x;
-  int y;
+  const int x;
+  const int y;
 };
 
 enum Inputs {
-  Quit = 'q'
+  Quit = 'q',
+  Start = 's'
 };
 
 void init_tui();
+void print_basic_info(const Coordinates& win_dimensions);
 [[nodiscard]] auto get_window_dimensions(const WINDOW *const win) -> Coordinates;
 } // namespace
 
@@ -20,16 +23,24 @@ auto main() -> int {
   init_tui();
 
   const Coordinates win_dimensions = get_window_dimensions(stdscr);
-
-  mvprintw(win_dimensions.y / 4, win_dimensions.x / 2, "tuitris");
-  refresh();
+  print_basic_info(win_dimensions);
+  Game game;
 
   char input;
-  do {
+  while (true) {
     const char raw_input = getch();
     input = std::tolower(raw_input);
-  } while (input != Quit);
 
+    switch (input) {
+      case Inputs::Quit:
+        goto Quit;
+      case Inputs::Start:
+        game.start();
+        break;
+    }
+  }
+
+Quit:
   endwin();
   return 0;
 }
@@ -41,6 +52,12 @@ void init_tui() {
   noecho();
   cbreak();
   keypad(stdscr, true);
+}
+
+void print_basic_info(const Coordinates& win_dimensions) {
+  mvprintw(win_dimensions.y / 4, win_dimensions.x / 2, "tuitris");
+  mvprintw(win_dimensions.y * 19 / 20, win_dimensions.x / 8, "Quit (q)");
+  refresh();
 }
 
 auto get_window_dimensions(const WINDOW *const win) -> Coordinates {
