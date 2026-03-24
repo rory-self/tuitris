@@ -5,17 +5,17 @@
 #include <array>
 #include <optional>
 
-namespace {
+namespace GameInfo {
 constexpr std::size_t game_width = 10;
 constexpr std::size_t game_height = 20;
 
 enum class TileState { Empty, Taken, Hovering };
 using TileData = std::array<std::array<TileState, game_width>, game_height>;
-} // namespace
+} // namespace GameInfo
 
 class Game {
 private:
-  std::optional<TileData> _tile_data;
+  std::optional<GameInfo::TileData> _tile_data = std::nullopt;
 
 public:
   [[nodiscard]] bool has_started() const noexcept;
