@@ -6,18 +6,10 @@
 #include <stdexcept>
 
 namespace {
-using namespace std::chrono_literals;
-constexpr std::chrono::milliseconds tick_delay_ms = 300ms;
-
 constexpr int signed_game_height = static_cast<int>(game_height);
 constexpr int signed_game_width = static_cast<int>(game_width);
 constexpr int game_win_height = signed_game_height + 2;
-constexpr int game_win_width = (signed_game_width + 1) * 4;
-
-enum Inputs {
-  Quit = 'q',
-  Start = 's'
-};
+constexpr int game_win_width = (signed_game_width + 2) * 2;
 
 using WindowPtr = std::shared_ptr<WINDOW>;
 using Clock = std::chrono::steady_clock;
@@ -28,8 +20,8 @@ void print_basic_info();
 [[nodiscard]] auto get_window_dimensions(const WINDOW *const win) -> Coordinates;
 [[nodiscard]] auto start_game_window() -> WindowPtr;
 void print_game_block(WindowPtr game_win, const Coordinates& pos);
-void game_routine(Game& game, WindowPtr game_win);
-auto handle_global_input(Game& game, WindowPtr game_win) -> bool;
+void game_routine(Game& game, WindowPtr game_win, const Input input, Time& next_tick);
+auto capture_input(const bool has_started) -> Input;
 } // namespace
 
 auto main() -> int {
@@ -40,18 +32,19 @@ auto main() -> int {
 
   Game game;
 
-  bool continue_game = true;
+  Input input = Input::None;
   Time next_tick = Clock::now();
-  while (continue_game) {
+  while (input != Input::Quit) {
+    const bool has_started = game.has_started();
+    if (has_started) {
+      game_routine(game, game_win, input, next_tick);      
+    } 
 
-    if (game.has_started() and Clock::now() >= next_tick) {
-      game_routine(game, game_win);
-
-      next_tick = Clock::now() + tick_delay_ms;
-      continue;
-    }
-
-    continue_game = handle_global_input(game, game_win);
+     input = capture_input(has_started);
+     if (input == Input::Start and not has_started) {
+       game.start();
+       input = None;
+     } 
   }
 
   endwin();
@@ -85,7 +78,7 @@ auto start_game_window() -> WindowPtr {
   WINDOW *const game_win = newwin(game_win_height, game_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2);
   box(game_win, 0, 0);
 
-  mvwprintw(game_win, game_win_height / 2, game_win_width / 2, "'s' to start");
+  mvwprintw(game_win, game_win_height / 2, game_win_width / 2, "Start (s)");
   wrefresh(game_win);
 
   return {game_win, delwin};
@@ -98,37 +91,53 @@ void clear_game_window(WindowPtr game_win) {
   wrefresh(game_win.get());
 }
 
-auto handle_global_input(Game& game, WindowPtr game_win) -> bool {
-  nodelay(stdscr, game.has_started());
-  const char raw_input = getch();
-  if (raw_input == ERR) {
-    return true;
+auto capture_input(const bool has_started) -> Input {
+  if (has_started) {
+    constexpr int polling_delay_ms = 16;
+    wtimeout(stdscr, polling_delay_ms);
+  }
+
+  const int raw_input = getch();
+  switch (raw_input) {
+    case KEY_LEFT:
+      return Input::Left;
+    case KEY_RIGHT:
+      return Input::Right;
+    case ERR:
+      return Input::None;
   }
 
   const char input = std::tolower(raw_input);
-
-  bool continue_game = true;
   switch(input) {
-    case Inputs::Quit:
-      continue_game = false;
-      break;
-    case Inputs::Start:
-      if (not game.has_started()) {
-        game.start();
-        clear_game_window(game_win);
-      }
-
-      break;
+    case Input::Quit:
+    case Input::Start:
+    case Input::Left:
+    case Input::Right:
+      return static_cast<Input>(input);
+    default:
+      return Input::None;
   }
-
-  return continue_game;
 }
 
-void game_routine(Game& game, WindowPtr game_win) {
-  const TileData new_data = game.tick();
-  
+void game_routine(Game& game, WindowPtr game_win, const Input input, Time& next_tick) {
+  const bool moved = game.try_move(input);
+
+  bool ticked = false;
+  if (Clock::now() >= next_tick) {
+    game.tick();
+    ticked = true;
+
+    using namespace std::chrono_literals;
+    next_tick = Clock::now() + 300ms;
+  }
+
+  if (not ticked and not moved) {
+    return;
+  }
+ 
   clear_game_window(game_win);
 
+  const TileData& new_data = game.get_tile_data();
   int y = 0;
   for (const auto& tile_row : new_data) {
     int x = 0;
