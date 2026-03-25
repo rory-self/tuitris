@@ -19,6 +19,6 @@ if(Curses_FOUND AND NOT TARGET Curses::Curses)
 endif()
 
 
-add_executable(${PROJECT_NAME} src/main.cpp src/game.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/game.cpp src/coordinates.cpp src/tetromino.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Curses::Curses)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/includes)

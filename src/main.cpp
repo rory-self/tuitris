@@ -20,7 +20,7 @@ void print_basic_info();
 [[nodiscard]] auto get_window_dimensions(const WINDOW *const win) -> Coordinates;
 [[nodiscard]] auto start_game_window() -> WindowPtr;
 void print_game_block(WindowPtr game_win, const Coordinates& pos);
-void game_routine(Game& game, WindowPtr game_win, const Input input, Time& next_tick);
+void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick);
 auto capture_input(const bool has_started) -> Input;
 } // namespace
 
@@ -37,7 +37,8 @@ auto main() -> int {
   while (input != Input::Quit) {
     const bool has_started = game.has_started();
     if (has_started) {
-      game_routine(game, game_win, input, next_tick);      
+      GameSession& session = game.get_session();
+      game_routine(session, game_win, input, next_tick);      
     } 
 
      input = capture_input(has_started);
@@ -119,7 +120,7 @@ auto capture_input(const bool has_started) -> Input {
   }
 }
 
-void game_routine(Game& game, WindowPtr game_win, const Input input, Time& next_tick) {
+void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick) {
   const bool moved = game.try_move(input);
 
   bool ticked = false;
@@ -141,8 +142,8 @@ void game_routine(Game& game, WindowPtr game_win, const Input input, Time& next_
   int y = 0;
   for (const auto& tile_row : new_data) {
     int x = 0;
-    for (const TileState state : tile_row) {
-      if (state != TileState::Empty) {
+    for (const Tile tile : tile_row) {
+      if (tile.state != TileState::Empty) {
         print_game_block(game_win, { .x = x, .y = y });
       }
 
