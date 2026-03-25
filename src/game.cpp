@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include "tetromino.hpp"
 
 // Game //
 auto Game::has_started() const noexcept -> bool {
@@ -25,16 +26,37 @@ GameSession::GameSession() {
 }
 
 void GameSession::refill_bag() {
-  _shape_bag = {Shape::L};
+  _shape_bag = {
+    LTetromino(),
+    ITetromino(),
+    JTetromino(),
+    ZTetromino(),
+    OTetromino(),
+    STetromino(),
+    TTetromino(),
+  };
 }
 
 auto GameSession::try_move(const Input input) -> bool {
-  if ((input != Input::Left and input != Input::Right) or not _falling_tetromino.has_value()) {
+  if (not _falling_tetromino.has_value()) {
+    return false;
+  }
+
+  if (input != Input::Left and input != Input::Right and input != Input::RotateClockwise) {
     return false;
   }
 
   FallingTetromino& falling_tetromino = _falling_tetromino.value();
   auto& [tetromino, tetromino_center_pos] = falling_tetromino; 
+
+  if (input == Input::RotateClockwise) {
+    const std::array<Coordinates, 4> old_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
+    bool _ = tetromino.rotate_clockwise(tetromino_center_pos);
+    const std::array<Coordinates, 4> new_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
+    update_falling_tiles(falling_tetromino, old_tile_positions, new_tile_positions);
+    return true;
+  }
+
   int new_center_x = tetromino_center_pos.x;
   if (input == Input::Left) {
     new_center_x--;
@@ -101,10 +123,9 @@ void GameSession::drop_tetromino() {
     refill_bag();
   }
 
-  const Shape shape = _shape_bag.back();
+  const Tetromino tetromino = _shape_bag.back();
   _shape_bag.pop_back();
 
-  const Tetromino tetromino = Tetromino(shape);
   _falling_tetromino = {{ tetromino, { 2, 2 }}};
 }
 

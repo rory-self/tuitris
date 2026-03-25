@@ -120,6 +120,7 @@ auto capture_input(const bool has_started) -> Input {
     case Input::Start:
     case Input::Left:
     case Input::Right:
+    case Input::RotateClockwise:
       return static_cast<Input>(input);
     default:
       return Input::None;
