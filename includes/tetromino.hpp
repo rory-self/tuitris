@@ -6,13 +6,14 @@
 #include <array>
 
 enum class Rotation { Zero, Ninety, OneEighty, TwoSeventy };
-
+enum class Colour { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
 using TilePositions = std::array<Coordinates, 4>;
 
 class Tetromino {
 protected:
   std::array<Coordinates, 3> _offsets;
   Rotation _rotation = Rotation::Zero;
+  Colour _colour;
 
   Tetromino() = default;
 
@@ -22,6 +23,7 @@ public:
   [[nodiscard]] auto get_tile_positions(const Coordinates& pivot_pos) const -> TilePositions;
   [[nodiscard]] virtual auto rotate_clockwise(const Coordinates& pivot_pos) -> bool;
   [[nodiscard]] virtual auto rotate_anticlockwise(const Coordinates& pivot_pos) -> bool;
+  [[nodiscard]] auto get_colour() const noexcept -> Colour;
 };
 
 class LTetromino : public Tetromino {

@@ -9,16 +9,32 @@
 #include <vector>
 #include <memory>
 #include <random>
+#include <variant>
 
-enum class TileState { Empty, Taken, Falling };
-enum class TileColour { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
-struct Tile {
-  TileState state;
+class OccupiedTile {
+private:
+  Colour _colour;
 
-  [[nodiscard]] auto operator==(const TileState& other_state) -> bool {
-    return state == other_state;
-  }
+protected:
+
+  OccupiedTile(const Colour colour);
+
+public:
+  [[nodiscard]] auto get_colour() const noexcept -> Colour;
 };
+
+class Taken : public OccupiedTile {
+public:
+  Taken(const Colour colour);
+};
+
+class Falling : public OccupiedTile{
+public:
+  Falling(const Colour colour);
+};
+
+struct Empty {};
+using Tile = std::variant<Empty, Taken, Falling>;
 
 using TileData = std::array<std::array<Tile, game_width>, game_height>;
 
@@ -43,14 +59,17 @@ private:
   std::vector<std::unique_ptr<Tetromino>> _shape_bag;
   std::mt19937 _bag_rng{std::random_device{}()};
 
-  void place_tiles(const std::array<Coordinates, 4>& falling_tile_positions);
+  void place_tiles(const Colour tetromino_colour,
+      const std::array<Coordinates, 4>& falling_tile_positions);
   void refill_bag();
 
 public:
   GameSession();
 
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileData&;
-  void update_falling_tiles(const FallingTetromino& _falling_tetromino, const std::array<Coordinates, 4>& old_tile_positions, const std::array<Coordinates, 4>& new_tile_positions);
+  void update_falling_tiles(const Colour tetromino_colour,
+      const std::array<Coordinates, 4>& old_tile_positions,
+      const std::array<Coordinates, 4>& new_tile_positions);
   auto try_move(const Input input) -> bool;
   void tick();
   void drop_tetromino();

@@ -1,10 +1,11 @@
-#include <ncurses.h>
 #include "game.hpp"
 
+#include <ncurses.h>
 #include <memory>
 #include <chrono>
 #include <stdexcept>
 #include <csignal>
+#include <variant>
 
 namespace {
 constexpr int game_win_height = signed_game_height + 2;
@@ -16,10 +17,10 @@ using Time = std::chrono::time_point<Clock>;
 
 // Prototypes //
 void init_tui();
+void init_colours();
 void print_basic_info();
-[[nodiscard]] auto get_window_dimensions(const WINDOW *const win) -> Coordinates;
 [[nodiscard]] auto start_game_window() -> WindowPtr;
-void print_game_block(WindowPtr game_win, const Coordinates& pos);
+void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour colour);
 void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick);
 auto capture_input(const bool has_started) -> Input;
 } // namespace
@@ -58,8 +59,9 @@ void init_tui() {
   setlocale(LC_ALL, ""); // utf-8 support
   initscr();
   curs_set(0); // hide cursor
-  noecho();
   cbreak();
+  noecho();
+  init_colours();
   keypad(stdscr, true);
 
   std::signal(SIGINT, [](int) {
@@ -68,17 +70,27 @@ void init_tui() {
   });
 }
 
+void init_colours() {
+  if (not has_colors()) {
+    return;
+  }
+
+  start_color();
+  use_default_colors();
+
+  init_pair(1, COLOR_CYAN, COLOR_BLACK);
+  init_pair(2, COLOR_WHITE, COLOR_BLACK);
+  init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(4, COLOR_BLUE, COLOR_BLACK);
+  init_pair(5, COLOR_GREEN, COLOR_BLACK);
+  init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(7, COLOR_RED, COLOR_BLACK);
+}
+
 void print_basic_info() {
   mvprintw(LINES / 4, (COLS - 7) / 2, "tuitris"); 
   mvprintw(LINES * 19 / 20, COLS / 8, "Quit (q)");
   refresh();
-}
-
-auto get_window_dimensions(const WINDOW *const win) -> Coordinates {
-  int max_y, max_x;
-  getmaxyx(win, max_y, max_x);
-
-  return { .x = max_x, .y = max_y }; 
 }
 
 auto start_game_window() -> WindowPtr {
@@ -94,8 +106,6 @@ auto start_game_window() -> WindowPtr {
 void clear_game_window(WindowPtr game_win) {
   werase(game_win.get());
   box(game_win.get(), 0, 0);
-
-  wrefresh(game_win.get());
 }
 
 auto capture_input(const bool has_started) -> Input {
@@ -149,10 +159,13 @@ void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time
   int y = 0;
   for (const auto& tile_row : new_data) {
     int x = 0;
-    for (const Tile tile : tile_row) {
-      if (tile.state != TileState::Empty) {
-        print_game_block(game_win, { .x = x, .y = y });
-      }
+    for (const Tile& tile : tile_row) {
+      std::visit([&](const auto& t) {
+        if constexpr (!std::is_same_v<std::decay_t<decltype(t)>, Empty>) {
+            const Colour tile_colour = t.get_colour();
+            print_game_block(game_win, { .x = x, .y = y }, tile_colour);
+        }
+      }, tile);
 
       x++;
     }
@@ -163,11 +176,39 @@ void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time
   wrefresh(game_win.get());
 }
 
-void print_game_block(WindowPtr game_win, const Coordinates& pos) {
+void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour colour) {
   if (pos.x >= signed_game_width or pos.y >= signed_game_height or pos.x < 0 or pos.y < 0) {
     throw std::out_of_range("Tile coordinate is out of range");
   }
 
+  chtype ncurses_colour;
+  switch (colour) {
+    case Colour::Cyan:
+      ncurses_colour = COLOR_PAIR(1);
+      break;
+    case Colour::Orange:
+      // TODO custom ncurses_colour
+      ncurses_colour = COLOR_PAIR(2);
+      break;
+    case Colour::Yellow:
+      ncurses_colour = COLOR_PAIR(3);
+      break;
+    case Colour::Blue:
+      ncurses_colour = COLOR_PAIR(4);
+      break;
+    case Colour::Green:
+      ncurses_colour = COLOR_PAIR(5);
+      break;
+    case Colour::Purple:
+      ncurses_colour = COLOR_PAIR(6);
+      break;
+    case Colour::Red:
+      ncurses_colour = COLOR_PAIR(7);
+      break;
+  }
+
+  wattron(game_win.get(), ncurses_colour);
   mvwprintw(game_win.get(), pos.y + 1, (pos.x + 1) * 2, "██");
+  wattroff(game_win.get(), ncurses_colour);
 }
 } // namespace
