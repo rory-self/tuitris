@@ -20,8 +20,8 @@ void init_tui();
 void init_colours();
 void print_basic_info();
 [[nodiscard]] auto start_game_window() -> WindowPtr;
-void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour colour);
 void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick);
+void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour colour);
 auto capture_input(const bool has_started) -> Input;
 } // namespace
 
@@ -72,19 +72,20 @@ void init_tui() {
 
 void init_colours() {
   if (not has_colors()) {
+    // TODO
     return;
   }
 
   start_color();
   use_default_colors();
 
-  init_pair(1, COLOR_CYAN, COLOR_BLACK);
-  init_pair(2, COLOR_WHITE, COLOR_BLACK);
-  init_pair(3, COLOR_YELLOW, COLOR_BLACK);
-  init_pair(4, COLOR_BLUE, COLOR_BLACK);
-  init_pair(5, COLOR_GREEN, COLOR_BLACK);
-  init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(7, COLOR_RED, COLOR_BLACK);
+  init_pair(1, COLOR_CYAN, COLOR_CYAN);
+  init_pair(2, COLOR_WHITE, COLOR_WHITE);
+  init_pair(3, COLOR_YELLOW, COLOR_YELLOW);
+  init_pair(4, COLOR_BLUE, COLOR_BLUE);
+  init_pair(5, COLOR_GREEN, COLOR_GREEN);
+  init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA);
+  init_pair(7, COLOR_RED, COLOR_RED);
 }
 
 void print_basic_info() {
