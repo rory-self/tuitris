@@ -4,10 +4,9 @@
 #include <memory>
 #include <chrono>
 #include <stdexcept>
+#include <csignal>
 
 namespace {
-constexpr int signed_game_height = static_cast<int>(game_height);
-constexpr int signed_game_width = static_cast<int>(game_width);
 constexpr int game_win_height = signed_game_height + 2;
 constexpr int game_win_width = (signed_game_width + 2) * 2;
 
@@ -15,6 +14,7 @@ using WindowPtr = std::shared_ptr<WINDOW>;
 using Clock = std::chrono::steady_clock;
 using Time = std::chrono::time_point<Clock>;
 
+// Prototypes //
 void init_tui();
 void print_basic_info();
 [[nodiscard]] auto get_window_dimensions(const WINDOW *const win) -> Coordinates;
@@ -24,6 +24,7 @@ void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time
 auto capture_input(const bool has_started) -> Input;
 } // namespace
 
+// Implementation //
 auto main() -> int {
   init_tui();
 
@@ -60,6 +61,11 @@ void init_tui() {
   noecho();
   cbreak();
   keypad(stdscr, true);
+
+  std::signal(SIGINT, [](int) {
+      endwin();
+      std::exit(0);
+  });
 }
 
 void print_basic_info() {
