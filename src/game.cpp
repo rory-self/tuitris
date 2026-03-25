@@ -21,6 +21,10 @@ GameSession::GameSession() {
     }
   }
 
+  refill_bag();
+}
+
+void GameSession::refill_bag() {
   _shape_bag = {Shape::L};
 }
 
@@ -93,6 +97,10 @@ void GameSession::update_falling_tiles(const FallingTetromino& falling_tetromino
 }
 
 void GameSession::drop_tetromino() {
+  if (_shape_bag.empty()) {
+    refill_bag();
+  }
+
   const Shape shape = _shape_bag.back();
   _shape_bag.pop_back();
 
@@ -104,4 +112,6 @@ void GameSession::place_tiles(const std::array<Coordinates, 4>& falling_tile_pos
   for (const auto& [x, y] : falling_tile_positions) {
     _tile_data[y][x].state = TileState::Taken;
   }
+
+  _falling_tetromino = std::nullopt;
 }

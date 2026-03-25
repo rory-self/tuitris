@@ -40,6 +40,7 @@ private:
   std::vector<Shape> _shape_bag;
 
   void place_tiles(const std::array<Coordinates, 4>& falling_tile_positions);
+  void refill_bag();
 
 public:
   GameSession();
