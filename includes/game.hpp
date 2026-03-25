@@ -3,6 +3,7 @@
 
 #include "coordinates.hpp"
 #include "tetromino.hpp"
+#include "inputs.hpp"
 
 #include <array>
 #include <optional>
@@ -37,15 +38,6 @@ struct Empty {};
 using Tile = std::variant<Empty, Taken, Falling>;
 
 using TileData = std::array<std::array<Tile, game_width>, game_height>;
-
-enum Input {
-  Quit = 'q',
-  Start = 's',
-  Left = 'a',
-  Right = 'd',
-  RotateClockwise = 'e',
-  None,
-};
 
 class GameSession {
 private:
