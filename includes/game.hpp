@@ -7,6 +7,8 @@
 #include <array>
 #include <optional>
 #include <vector>
+#include <memory>
+#include <random>
 
 enum class TileState { Empty, Taken, Falling };
 enum class TileColour { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
@@ -32,13 +34,14 @@ enum Input {
 class GameSession {
 private:
   struct FallingTetromino {
-    Tetromino tetromino;
+    std::unique_ptr<Tetromino> tetromino;
     Coordinates pivot_pos;
   };
 
   TileData _tile_data;
   std::optional<FallingTetromino> _falling_tetromino;
-  std::vector<Tetromino> _shape_bag;
+  std::vector<std::unique_ptr<Tetromino>> _shape_bag;
+  std::mt19937 _bag_rng{std::random_device{}()};
 
   void place_tiles(const std::array<Coordinates, 4>& falling_tile_positions);
   void refill_bag();
