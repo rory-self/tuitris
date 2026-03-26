@@ -4,39 +4,14 @@
 #include "coordinates.hpp"
 #include "tetromino.hpp"
 #include "inputs.hpp"
+#include "tile.hpp"
 
 #include <array>
 #include <optional>
 #include <vector>
 #include <memory>
 #include <random>
-#include <variant>
 #include <unordered_set>
-
-class OccupiedTile {
-private:
-  Colour _colour;
-
-protected:
-
-  OccupiedTile(const Colour colour);
-
-public:
-  [[nodiscard]] auto get_colour() const noexcept -> Colour;
-};
-
-class Taken : public OccupiedTile {
-public:
-  Taken(const Colour colour);
-};
-
-class Falling : public OccupiedTile{
-public:
-  Falling(const Colour colour);
-};
-
-struct Empty {};
-using Tile = std::variant<Empty, Taken, Falling>;
 
 using TileRow = std::array<Tile, game_width>;
 using TileGrid = std::array<TileRow, game_height>;
@@ -52,10 +27,12 @@ private:
   std::optional<FallingTetromino> _falling_tetromino;
   std::vector<std::unique_ptr<Tetromino>> _shape_bag;
   std::mt19937 _bag_rng{std::random_device{}()};
+  unsigned int _score = 0;
 
   void place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions);
   void refill_bag();
   void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
+  void score_removed_rows(const unsigned int rows_removed);
 
 public:
   GameSession();

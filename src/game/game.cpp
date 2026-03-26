@@ -10,14 +10,6 @@ namespace {
 }
 } // namespace
 
-// Tile //
-auto OccupiedTile::get_colour() const noexcept -> Colour {
-  return _colour;
-}
-OccupiedTile::OccupiedTile(const Colour colour) : _colour(colour) {}
-Taken::Taken(const Colour colour) : OccupiedTile(colour) {}
-Falling::Falling(const Colour colour) : OccupiedTile(colour) {}
-
 // Game //
 auto Game::has_started() const noexcept -> bool {
   return _session.has_value();
@@ -205,6 +197,26 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
       row_below[x] = tile_row[x];
       tile_row[x] = Empty{};
     }
+  }
+
+  score_removed_rows(rows_removed); 
+}
+
+void GameSession::score_removed_rows(const unsigned int rows_removed) {
+  // TODO migrate to modern scoring system
+  switch (rows_removed) {
+    case 1:
+      _score += 40;
+      break;
+    case 2:
+      _score += 100;
+      break;
+    case 3:
+      _score += 400;
+      break;
+    case 4:
+      _score += 1200;
+      break;
   }
 }
 
