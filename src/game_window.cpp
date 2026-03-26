@@ -1,5 +1,7 @@
 #include "game_window.hpp"
 
+#include <ranges>
+
 GameWindow::GameWindow(const GameSession& game) : _window(make_game_window()), _game(game) {}
 
 auto GameWindow::make_game_window() -> WindowPtr {
@@ -17,33 +19,25 @@ void GameWindow::clear() const {
 
 void GameWindow::update() const {
   clear();
-
   const TileGrid& new_data = _game.get_tile_data();
-  int y = 0;
-  for (const auto& tile_row : new_data) {
-    int x = 0;
-    for (const Tile& tile : tile_row) {
+
+  for (const auto& [y, tile_row] : std::views::enumerate(new_data)) {
+    for (const auto& [x, tile] : std::views::enumerate(tile_row)) {
       std::visit([&](const auto& t) {
-        if constexpr (!std::is_same_v<std::decay_t<decltype(t)>, Empty>) {
+        if constexpr (not std::is_same_v<std::decay_t<decltype(t)>, Empty>) {
             const Colour tile_colour = t.get_colour();
-            print_block({ .x = x, .y = y }, tile_colour);
+            const Coordinates tile_coords = { .x = static_cast<int>(x), .y = static_cast<int>(y) };
+
+            print_block(tile_coords, tile_colour);
         }
       }, tile);
-
-      x++;
     }
-
-    y++;
   }
 
   wrefresh(_window.get());
 }
 
 void GameWindow::print_block(const Coordinates& pos, const Colour colour) const {
-  if (pos.x >= signed_game_width or pos.y >= signed_game_height or pos.x < 0 or pos.y < 0) {
-    throw std::out_of_range("Tile coordinate is out of range");
-  }
-
   const chtype ncurses_colour = TUIColours::colour_to_ncurses_pair(colour);
 
   wattron(_window.get(), ncurses_colour);
