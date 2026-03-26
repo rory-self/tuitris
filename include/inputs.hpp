@@ -23,6 +23,6 @@ enum class Transformation {
 };
 
 [[nodiscard]] auto capture_input(const bool game_started) -> Input;
-[[nodiscard]] auto input_to_transformation(const Input input) noexcept -> std::optional<Transformation>;
+[[nodiscard]] auto input_to_transformation(const Input input) -> std::optional<Transformation>;
 
 #endif //INPUTS_HPP

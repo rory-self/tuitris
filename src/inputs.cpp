@@ -34,7 +34,7 @@ auto capture_input(const bool game_started) -> Input {
   }
 }
 
-auto input_to_transformation(const Input input) noexcept -> std::optional<Transformation> {
+auto input_to_transformation(const Input input) -> std::optional<Transformation> {
   switch (input) {
     case Input::Left:
       return Transformation::Left;
