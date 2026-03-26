@@ -2,11 +2,11 @@
 #define TETROMINO_HPP
 
 #include "coordinates.hpp"
+#include "colours.hpp"
 
 #include <array>
 
 enum class Rotation { Zero, Ninety, OneEighty, TwoSeventy };
-enum class Colour { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
 using TilePositions = std::array<Coordinates, 4>;
 
 class Tetromino {

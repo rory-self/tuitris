@@ -1,3 +1,4 @@
+#include "colours.hpp"
 #include "game.hpp"
 
 #include <ncurses.h>
@@ -60,32 +61,14 @@ void init_tui() {
   initscr();
   curs_set(0); // hide cursor
   cbreak();
-  noecho();
-  init_colours();
+  noecho(); 
+  TUIColours::init();
   keypad(stdscr, true);
 
   std::signal(SIGINT, [](int) {
       endwin();
       std::exit(0);
   });
-}
-
-void init_colours() {
-  if (not has_colors()) {
-    // TODO
-    return;
-  }
-
-  start_color();
-  use_default_colors();
-
-  init_pair(1, COLOR_CYAN, COLOR_CYAN);
-  init_pair(2, COLOR_WHITE, COLOR_WHITE);
-  init_pair(3, COLOR_YELLOW, COLOR_YELLOW);
-  init_pair(4, COLOR_BLUE, COLOR_BLUE);
-  init_pair(5, COLOR_GREEN, COLOR_GREEN);
-  init_pair(6, COLOR_MAGENTA, COLOR_MAGENTA);
-  init_pair(7, COLOR_RED, COLOR_RED);
 }
 
 void print_basic_info() {
@@ -182,31 +165,7 @@ void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour c
     throw std::out_of_range("Tile coordinate is out of range");
   }
 
-  chtype ncurses_colour;
-  switch (colour) {
-    case Colour::Cyan:
-      ncurses_colour = COLOR_PAIR(1);
-      break;
-    case Colour::Orange:
-      // TODO custom ncurses_colour
-      ncurses_colour = COLOR_PAIR(2);
-      break;
-    case Colour::Yellow:
-      ncurses_colour = COLOR_PAIR(3);
-      break;
-    case Colour::Blue:
-      ncurses_colour = COLOR_PAIR(4);
-      break;
-    case Colour::Green:
-      ncurses_colour = COLOR_PAIR(5);
-      break;
-    case Colour::Purple:
-      ncurses_colour = COLOR_PAIR(6);
-      break;
-    case Colour::Red:
-      ncurses_colour = COLOR_PAIR(7);
-      break;
-  }
+  const chtype ncurses_colour = TUIColours::colour_to_ncurses_pair(colour);
 
   wattron(game_win.get(), ncurses_colour);
   mvwprintw(game_win.get(), pos.y + 1, (pos.x + 1) * 2, "██");
