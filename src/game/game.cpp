@@ -1,5 +1,6 @@
 #include "game/game.hpp"
 #include "game/tetromino.hpp"
+#include "inputs.hpp"
 
 #include <algorithm>
 #include <variant>
@@ -51,13 +52,8 @@ void GameSession::refill_bag() {
   std::ranges::shuffle(_shape_bag, _bag_rng);
 }
 
-auto GameSession::try_transformation(const Input input) -> bool {
+auto GameSession::try_transformation(const Transformation transformation) -> bool {
   if (not _falling_tetromino.has_value()) {
-    return false;
-  }
-
-  const bool is_rotation = input == Input::RotateClockwise or input == Input::RotateAntiClockwise;
-  if (input != Input::Left and input != Input::Right and not is_rotation and input != Input::Drop) {
     return false;
   }
 
@@ -66,11 +62,12 @@ auto GameSession::try_transformation(const Input input) -> bool {
   const Colour tetromino_colour = tetromino->get_colour();
 
   const TilePositions old_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
-  if (is_rotation) {
-    return try_rotate_tetromino(falling_tetromino, old_tile_positions, input == Input::RotateClockwise);
+  const bool is_clockwise_rotation = transformation == Transformation::RotateClockwise;
+  if (is_clockwise_rotation or transformation == Transformation::RotateAntiClockwise) {
+    return try_rotate_tetromino(falling_tetromino, old_tile_positions, is_clockwise_rotation);
   }
 
-  if (input == Input::Drop) {
+  if (transformation == Transformation::Drop) {
     while (_falling_tetromino.has_value()) {
       tick();
     }
@@ -78,14 +75,14 @@ auto GameSession::try_transformation(const Input input) -> bool {
   }
 
   int new_center_x = tetromino_center_pos.x;
-  if (input == Input::Left) {
+  if (transformation == Transformation::Left) {
     new_center_x--;
   } else {
     new_center_x++;
   }
 
   const Coordinates new_center_pos = { .x = new_center_x, .y = tetromino_center_pos.y };
-  const std::array<Coordinates, 4> new_tile_positions = tetromino->get_tile_positions(new_center_pos);
+  const TilePositions new_tile_positions = tetromino->get_tile_positions(new_center_pos);
   for (const auto [x, y] : new_tile_positions) {
     if (x < 0 or x >= signed_game_width or is_taken(_tile_data[y][x])) {
       return false;
@@ -97,7 +94,8 @@ auto GameSession::try_transformation(const Input input) -> bool {
   return true;
 }
 
-auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino, const TilePositions& curr_tile_positions, const bool clockwise) -> bool {
+auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino,
+    const TilePositions& curr_tile_positions, const bool clockwise) -> bool {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
   const bool can_rotate = tetromino->rotate(tetromino_center_pos, clockwise);
   if (not can_rotate) {

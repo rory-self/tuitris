@@ -1,6 +1,8 @@
 #ifndef INPUTS_HPP
 #define INPUTS_HPP
 
+#include <optional>
+
 enum Input {
   Quit = 'x',
   Start = 's',
@@ -12,6 +14,15 @@ enum Input {
   None,
 };
 
+enum class Transformation {
+  Left,
+  Right,
+  RotateClockwise,
+  RotateAntiClockwise,
+  Drop,
+};
+
 [[nodiscard]] auto capture_input(const bool game_started) -> Input;
+[[nodiscard]] auto input_to_transformation(const Input input) noexcept -> std::optional<Transformation>;
 
 #endif //INPUTS_HPP

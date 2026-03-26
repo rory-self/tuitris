@@ -42,7 +42,7 @@ public:
   void update_falling_tiles(const Colour tetromino_colour,
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);
-  auto try_transformation(const Input input) -> bool;
+  auto try_transformation(const Transformation transformation) -> bool;
   void tick();
   void drop_tetromino();
 };

@@ -33,3 +33,20 @@ auto capture_input(const bool game_started) -> Input {
       return Input::None;
   }
 }
+
+auto input_to_transformation(const Input input) noexcept -> std::optional<Transformation> {
+  switch (input) {
+    case Input::Left:
+      return Transformation::Left;
+    case Input::Right:
+      return Transformation::Right;
+    case Input::RotateAntiClockwise:
+      return Transformation::RotateAntiClockwise;
+    case Input::RotateClockwise:
+      return Transformation::RotateClockwise;
+    case Input::Drop:
+      return Transformation::Drop;
+    default:
+      return std::nullopt;
+  }
+}

@@ -70,7 +70,10 @@ void print_basic_info() {
 }
 
 void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick) {
-  const bool moved = game.try_transformation(input);
+  bool moved = false;
+  if (auto transformation = input_to_transformation(input)) {
+    moved = game.try_transformation(*transformation);
+  }
 
   bool ticked = false;
   if (Clock::now() >= next_tick) {
