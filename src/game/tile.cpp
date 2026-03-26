@@ -1,4 +1,4 @@
-#include "tile.hpp"
+#include "game/tile.hpp"
 
 OccupiedTile::OccupiedTile(const Colour colour) : _colour(colour) {}
 

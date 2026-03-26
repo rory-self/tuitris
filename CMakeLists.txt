@@ -23,6 +23,8 @@ add_executable(${PROJECT_NAME}
   src/main.cpp
   src/colours.cpp
   src/coordinates.cpp
+  src/game_window.cpp
+  src/inputs.cpp
   src/game/game.cpp
   src/game/tetromino.cpp
   src/game/tile.cpp

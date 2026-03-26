@@ -8,6 +8,7 @@ enum Input {
   Right = 'd',
   RotateClockwise = 'e',
   RotateAntiClockwise = 'q',
+  Drop = ' ',
   None,
 };
 

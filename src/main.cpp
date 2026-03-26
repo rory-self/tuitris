@@ -5,9 +5,7 @@
 
 #include <ncurses.h>
 #include <chrono>
-#include <stdexcept>
 #include <csignal>
-#include <variant>
 
 namespace {
 using Clock = std::chrono::steady_clock;
@@ -17,17 +15,15 @@ using Time = std::chrono::time_point<Clock>;
 void init_tui();
 void print_basic_info();
 void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick);
-void update_game_window(GameSession& game, const GameWindow& game_win);
-void print_game_block(const GameWindow& game_win, const Coordinates& pos, const Colour colour);
 } // namespace
 
 // Implementation //
 auto main() -> int {
   init_tui();
-
   print_basic_info();
+
   Game game;
-  const std::optional<GameWindow> game_win;
+  std::optional<GameWindow> game_win;
 
   Input input = Input::None;
   Time next_tick = Clock::now();
@@ -38,12 +34,12 @@ auto main() -> int {
       game_routine(session, game_win.value(), input, next_tick);      
     } 
 
-     input = capture_input(has_started);
-     if (input == Input::Start and not has_started) {
-       game.start();
-       game_win = GameWindow();
-       input = None;
-     } 
+    input = capture_input(has_started);
+    if (input == Input::Start and not has_started) {
+      const GameSession& session = game.start();
+      game_win.emplace(session);
+      input = None;
+    } 
   }
 
   endwin();
@@ -67,13 +63,14 @@ void init_tui() {
 }
 
 void print_basic_info() {
-  mvprintw(LINES / 4, (COLS - 7) / 2, "tuitris"); 
-  mvprintw(LINES * 19 / 20, COLS / 8, "Quit (q)");
+  mvprintw(LINES / 4, (COLS - 7) / 2, "Tuitris"); 
+  mvprintw(LINES * 19 / 20, COLS / 8, "Quit (x)");
+  mvprintw(LINES / 2, COLS / 2, "'s' to start");
   refresh();
 }
 
 void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick) {
-  const bool moved = game.try_move(input);
+  const bool moved = game.try_transformation(input);
 
   bool ticked = false;
   if (Clock::now() >= next_tick) {
@@ -89,17 +86,5 @@ void game_routine(GameSession& game, const GameWindow& game_win, const Input inp
   }
 
   game_win.update();
-}
-
-void print_game_block(const WindowPtr& game_win, const Coordinates& pos, const Colour colour) {
-  if (pos.x >= signed_game_width or pos.y >= signed_game_height or pos.x < 0 or pos.y < 0) {
-    throw std::out_of_range("Tile coordinate is out of range");
-  }
-
-  const chtype ncurses_colour = TUIColours::colour_to_ncurses_pair(colour);
-
-  wattron(game_win.get(), ncurses_colour);
-  mvwprintw(game_win.get(), pos.y + 1, (pos.x + 1) * 2, "██");
-  wattroff(game_win.get(), ncurses_colour);
 }
 } // namespace

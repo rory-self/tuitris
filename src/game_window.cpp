@@ -5,8 +5,6 @@ GameWindow::GameWindow(const GameSession& game) : _window(make_game_window()), _
 auto GameWindow::make_game_window() -> WindowPtr {
   WINDOW *const game_win = newwin(game_win_height, game_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2);
   box(game_win, 0, 0);
-
-  mvwprintw(game_win, game_win_height / 2, game_win_width / 2, "Start (s)");
   wrefresh(game_win);
 
   return {game_win, delwin};

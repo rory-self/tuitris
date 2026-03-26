@@ -33,6 +33,7 @@ private:
   void refill_bag();
   void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
   void score_removed_rows(const unsigned int rows_removed);
+  auto try_rotate_tetromino(FallingTetromino& falling_tetromino, const TilePositions& tile_positions, const bool clockwise) -> bool;
 
 public:
   GameSession();
@@ -41,7 +42,7 @@ public:
   void update_falling_tiles(const Colour tetromino_colour,
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);
-  auto try_move(const Input input) -> bool;
+  auto try_transformation(const Input input) -> bool;
   void tick();
   void drop_tetromino();
 };
@@ -53,7 +54,7 @@ private:
 public:
   [[nodiscard]] auto get_session() -> GameSession&;
   [[nodiscard]] auto has_started() const noexcept -> bool;
-  void start();
+  auto start() -> const GameSession&;
 };
 
 #endif // GAME_HPP

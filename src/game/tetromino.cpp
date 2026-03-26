@@ -1,5 +1,5 @@
 #include "coordinates.hpp"
-#include <tetromino.hpp>
+#include <game/tetromino.hpp>
 
 auto Tetromino::get_colour() const noexcept -> Colour {
   return _colour;
@@ -61,6 +61,11 @@ auto Tetromino::rotate_clockwise(const Coordinates& pivot_pos) -> bool {
   return true;
 }
 
+auto Tetromino::rotate(const Coordinates& pivot_pos, const bool clockwise) -> bool {
+  return clockwise ? rotate_clockwise(pivot_pos) : rotate_anticlockwise(pivot_pos);
+}
+
+
 JTetromino::JTetromino() {
   _offsets = {{{-1, 0}, {-1, 1}, {1, 0}}};
   _colour = Colour::Blue;
@@ -96,10 +101,7 @@ TTetromino::TTetromino() {
   _colour = Colour::Purple;
 }
 
-auto OTetromino::rotate_clockwise(const Coordinates& pivot_pos) -> bool {
+auto OTetromino::rotate(const Coordinates& pivot_pos, const bool clockwise) -> bool {
   return false;
 }
 
-auto OTetromino::rotate_anticlockwise(const Coordinates& pivot_pos) -> bool {
-  return false;
-}

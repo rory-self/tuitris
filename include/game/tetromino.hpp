@@ -17,12 +17,14 @@ protected:
 
   Tetromino() = default;
 
+  [[nodiscard]] auto rotate_anticlockwise(const Coordinates& pivot_pos) -> bool;
+  [[nodiscard]] auto rotate_clockwise(const Coordinates& pivot_pos) -> bool;
+
 public:
   virtual ~Tetromino() = default;
 
   [[nodiscard]] auto get_tile_positions(const Coordinates& pivot_pos) const -> TilePositions;
-  [[nodiscard]] virtual auto rotate_clockwise(const Coordinates& pivot_pos) -> bool;
-  [[nodiscard]] virtual auto rotate_anticlockwise(const Coordinates& pivot_pos) -> bool;
+  [[nodiscard]] virtual auto rotate(const Coordinates& pivot_pos, const bool clockwise) -> bool;
   [[nodiscard]] auto get_colour() const noexcept -> Colour;
 };
 
@@ -40,8 +42,7 @@ class OTetromino : public Tetromino {
 public:
   OTetromino();
 
-  [[nodiscard]] auto rotate_clockwise(const Coordinates& pivot_pos) -> bool override;
-  [[nodiscard]] auto rotate_anticlockwise(const Coordinates& pivot_pos) -> bool override;
+  [[nodiscard]] auto rotate(const Coordinates& pivot_pos, const bool clockwise) -> bool override;
 };
 
 class JTetromino : public Tetromino {

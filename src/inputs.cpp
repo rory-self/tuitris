@@ -26,6 +26,8 @@ auto capture_input(const bool game_started) -> Input {
     case Input::Left:
     case Input::Right:
     case Input::RotateClockwise:
+    case Input::RotateAntiClockwise:
+    case Input::Drop:
       return static_cast<Input>(input);
     default:
       return Input::None;
