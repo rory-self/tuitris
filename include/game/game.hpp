@@ -38,7 +38,9 @@ private:
 public:
   GameSession();
 
+  [[nodiscard]] auto get_score() const noexcept -> unsigned int;
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
+
   void update_falling_tiles(const Colour tetromino_colour,
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);

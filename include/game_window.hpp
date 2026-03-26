@@ -19,6 +19,8 @@ private:
   [[nodiscard]] static auto make_game_window() -> WindowPtr;
   void print_block(const Coordinates& pos, const Colour colour) const;
   void clear() const;
+  void draw_border() const;
+  void refresh() const;
 
 public:
   GameWindow(const GameSession& game);

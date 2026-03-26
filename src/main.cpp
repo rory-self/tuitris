@@ -71,7 +71,7 @@ void print_basic_info() {
 
 void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick) {
   bool moved = false;
-  if (auto transformation = input_to_transformation(input)) {
+  if (const auto transformation = input_to_transformation(input)) {
     moved = game.try_transformation(*transformation);
   }
 
