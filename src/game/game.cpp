@@ -68,7 +68,14 @@ auto GameSession::try_transformation(const Input input) -> bool {
   const TilePositions old_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
   if (is_rotation) {
     return try_rotate_tetromino(falling_tetromino, old_tile_positions, input == Input::RotateClockwise);
-  } 
+  }
+
+  if (input == Input::Drop) {
+    while (_falling_tetromino.has_value()) {
+      tick();
+    }
+    return true;
+  }
 
   int new_center_x = tetromino_center_pos.x;
   if (input == Input::Left) {
