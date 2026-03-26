@@ -2,13 +2,15 @@
 #define INPUTS_HPP
 
 enum Input {
-  Quit = 'q',
+  Quit = 'x',
   Start = 's',
   Left = 'a',
   Right = 'd',
   RotateClockwise = 'e',
+  RotateAntiClockwise = 'q',
   None,
 };
 
+[[nodiscard]] auto capture_input(const bool game_started) -> Input;
 
 #endif //INPUTS_HPP

@@ -1,29 +1,24 @@
 #include "colours.hpp"
-#include "game.hpp"
+#include "inputs.hpp"
+#include "game_window.hpp"
+#include "game/game.hpp"
 
 #include <ncurses.h>
-#include <memory>
 #include <chrono>
 #include <stdexcept>
 #include <csignal>
 #include <variant>
 
 namespace {
-constexpr int game_win_height = signed_game_height + 2;
-constexpr int game_win_width = (signed_game_width + 2) * 2;
-
-using WindowPtr = std::unique_ptr<WINDOW, decltype(&delwin)>;
 using Clock = std::chrono::steady_clock;
 using Time = std::chrono::time_point<Clock>;
 
 // Prototypes //
 void init_tui();
 void print_basic_info();
-[[nodiscard]] auto start_game_window() -> WindowPtr;
-void game_routine(GameSession& game, const WindowPtr& game_win, const Input input, Time& next_tick);
-void update_game_window(GameSession& game, const WindowPtr& game_win);
-void print_game_block(const WindowPtr& game_win, const Coordinates& pos, const Colour colour);
-[[nodiscard]] auto capture_input(const bool has_started) -> Input;
+void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick);
+void update_game_window(GameSession& game, const GameWindow& game_win);
+void print_game_block(const GameWindow& game_win, const Coordinates& pos, const Colour colour);
 } // namespace
 
 // Implementation //
@@ -31,9 +26,8 @@ auto main() -> int {
   init_tui();
 
   print_basic_info();
-  const WindowPtr game_win = start_game_window(); 
-
   Game game;
+  const std::optional<GameWindow> game_win;
 
   Input input = Input::None;
   Time next_tick = Clock::now();
@@ -41,12 +35,13 @@ auto main() -> int {
     const bool has_started = game.has_started();
     if (has_started) {
       GameSession& session = game.get_session();
-      game_routine(session, game_win, input, next_tick);      
+      game_routine(session, game_win.value(), input, next_tick);      
     } 
 
      input = capture_input(has_started);
      if (input == Input::Start and not has_started) {
        game.start();
+       game_win = GameWindow();
        input = None;
      } 
   }
@@ -77,51 +72,7 @@ void print_basic_info() {
   refresh();
 }
 
-auto start_game_window() -> WindowPtr {
-  WINDOW *const game_win = newwin(game_win_height, game_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2);
-  box(game_win, 0, 0);
-
-  mvwprintw(game_win, game_win_height / 2, game_win_width / 2, "Start (s)");
-  wrefresh(game_win);
-
-  return {game_win, delwin};
-}
-
-void clear_game_window(const WindowPtr& game_win) {
-  werase(game_win.get());
-  box(game_win.get(), 0, 0);
-}
-
-auto capture_input(const bool has_started) -> Input {
-  if (has_started) {
-    constexpr int polling_delay_ms = 16;
-    wtimeout(stdscr, polling_delay_ms);
-  }
-
-  const int raw_input = getch();
-  switch (raw_input) {
-    case KEY_LEFT:
-      return Input::Left;
-    case KEY_RIGHT:
-      return Input::Right;
-    case ERR:
-      return Input::None;
-  }
-
-  const char input = std::tolower(raw_input);
-  switch(input) {
-    case Input::Quit:
-    case Input::Start:
-    case Input::Left:
-    case Input::Right:
-    case Input::RotateClockwise:
-      return static_cast<Input>(input);
-    default:
-      return Input::None;
-  }
-}
-
-void game_routine(GameSession& game, const WindowPtr& game_win, const Input input, Time& next_tick) {
+void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick) {
   const bool moved = game.try_move(input);
 
   bool ticked = false;
@@ -137,31 +88,7 @@ void game_routine(GameSession& game, const WindowPtr& game_win, const Input inpu
     return;
   }
 
-  update_game_window(game, game_win);
-}
-
-void update_game_window(GameSession& game, const WindowPtr& game_win) {
-  clear_game_window(game_win);
-
-  const TileGrid& new_data = game.get_tile_data();
-  int y = 0;
-  for (const auto& tile_row : new_data) {
-    int x = 0;
-    for (const Tile& tile : tile_row) {
-      std::visit([&](const auto& t) {
-        if constexpr (!std::is_same_v<std::decay_t<decltype(t)>, Empty>) {
-            const Colour tile_colour = t.get_colour();
-            print_game_block(game_win, { .x = x, .y = y }, tile_colour);
-        }
-      }, tile);
-
-      x++;
-    }
-
-    y++;
-  }
-
-  wrefresh(game_win.get());
+  game_win.update();
 }
 
 void print_game_block(const WindowPtr& game_win, const Coordinates& pos, const Colour colour) {
