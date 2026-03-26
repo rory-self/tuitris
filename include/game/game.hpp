@@ -30,8 +30,8 @@ private:
   std::mt19937 _bag_rng{std::random_device{}()};
   unsigned int _score = 0;
 
-  auto try_place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) -> bool;
-  [[nodiscard]] auto not_overflowing() const -> bool;
+  void place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions);
+  [[nodiscard]] auto is_overflowing() const -> bool;
   void refill_bag();
   void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
   void score_removed_rows(const unsigned int rows_removed);

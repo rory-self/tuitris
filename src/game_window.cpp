@@ -13,7 +13,7 @@ GameWindow::GameWindow(const GameSession& game)
 }
 
 auto GameWindow::make_game_window() -> WindowPtr {
-  WINDOW *const game_win = newwin(game_win_height, game_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2);
+  WINDOW *const game_win = newwin(game_win_height, game_win_width, (LINES - game_win_height) * 1 / 4, (COLS - game_win_width) / 2);
   return {game_win, delwin};
 }
 
@@ -44,7 +44,10 @@ void GameWindow::draw_border() const {
   mvwvline(_game_window.get(), box_top_y, box_left_x, ACS_VLINE, play_area_height);
   mvwvline(_game_window.get(), box_top_y, box_right_x, ACS_VLINE, play_area_height);
   mvwhline(_game_window.get(), box_bottom_y, 2, ACS_HLINE, box_right_x - 2);
+  mvwhline(_game_window.get(), box_top_y - 1, box_left_x + 1, '-', box_right_x - 2);
 
+  mvwaddch(_game_window.get(), box_top_y - 1, box_left_x, ACS_ULCORNER);
+  mvwaddch(_game_window.get(), box_top_y - 1, box_right_x, ACS_URCORNER);
   mvwaddch(_game_window.get(), box_bottom_y, box_left_x, ACS_LLCORNER);
   mvwaddch(_game_window.get(), box_bottom_y, box_right_x, ACS_LRCORNER);
 }
