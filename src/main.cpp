@@ -84,10 +84,8 @@ void game_routine(GameSession& game, const GameWindow& game_win, const Input inp
     next_tick = Clock::now() + 300ms;
   }
 
-  if (not ticked and not moved) {
-    return;
+  if (ticked or moved) {
+    game_win.update();
   }
-
-  game_win.update();
 }
 } // namespace

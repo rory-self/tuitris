@@ -37,6 +37,10 @@ GameSession::GameSession() {
   refill_bag();
 }
 
+auto GameSession::get_score() const noexcept -> unsigned int {
+  return _score;
+}
+
 void GameSession::refill_bag() {
   _shape_bag.clear();
   _shape_bag.reserve(7);
