@@ -99,7 +99,7 @@ auto GameSession::try_move(const Input input) -> bool {
   return true;
 }
 
-auto GameSession::get_tile_data() const noexcept -> const TileData& {
+auto GameSession::get_tile_data() const noexcept -> const TileGrid& {
   return _tile_data;
 }
 
@@ -113,8 +113,8 @@ void GameSession::tick() {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
 
   const Coordinates new_center_pos = { .x = tetromino_center_pos.x, .y = tetromino_center_pos.y + 1 };
-  const std::array<Coordinates, 4> curr_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
-  const std::array<Coordinates, 4> new_tile_positions = tetromino->get_tile_positions(new_center_pos);
+  const TilePositions curr_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
+  const TilePositions new_tile_positions = tetromino->get_tile_positions(new_center_pos);
   const Colour tetromino_colour = tetromino->get_colour();
   for (const auto [x, y] : new_tile_positions) {
     if (y >= signed_game_height or is_taken(_tile_data[y][x])) {
@@ -128,8 +128,8 @@ void GameSession::tick() {
 }
 
 void GameSession::update_falling_tiles(const Colour tetromino_colour,
-    const std::array<Coordinates, 4>& old_tile_positions,
-    const std::array<Coordinates, 4>& new_tile_positions) {
+    const TilePositions& old_tile_positions,
+    const TilePositions& new_tile_positions) {
 
   for (const auto [x, y] : old_tile_positions) {
     _tile_data[y][x] = Empty{};
@@ -149,12 +149,63 @@ void GameSession::drop_tetromino() {
   _shape_bag.pop_back();
 }
 
-void GameSession::place_tiles(const Colour tetromino_colour, const std::array<Coordinates, 4>& falling_tile_positions) {
+void GameSession::place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) {
+  std::unordered_set<Coordinate> y_coords;
   for (const auto& [x, y] : falling_tile_positions) {
     _tile_data[y][x] = Taken(tetromino_colour);
+
+    y_coords.emplace(y);
+  }
+  _falling_tetromino = std::nullopt;
+
+  remove_filled_rows(y_coords);
+}
+
+void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coords) {
+  std::optional<Coordinate> bottom_row_removed;
+  unsigned int rows_removed = 0;
+
+  for (const Coordinate y : y_coords) {
+    TileRow& tile_row = _tile_data[y];
+
+    bool row_filled = true;
+    for (const Tile& tile : tile_row) {
+      if (not is_taken(tile)) {
+        row_filled = false;
+        break;
+      }
+    }
+
+    if (not row_filled) {
+      continue;
+    }
+
+    const Coordinate curr_bottom_row = bottom_row_removed.value_or(y);
+    bottom_row_removed = std::max(curr_bottom_row, y);
+    rows_removed++;
+    for (Tile& tile : tile_row) {
+      tile = Empty{};
+    }
   }
 
-  _falling_tetromino = std::nullopt;
+  if (not bottom_row_removed.has_value()) {
+    return;
+  }
+
+  // make tiles above fall
+  for (Coordinate y = bottom_row_removed.value() - rows_removed; y >= 0; y--) {
+    TileRow& tile_row = _tile_data[y];
+    TileRow& row_below = _tile_data[y + rows_removed];
+
+    for (Coordinate x = 0; x < signed_game_width; x++) {
+      if (std::holds_alternative<Empty>(tile_row[x])) {
+        continue;
+      }
+
+      row_below[x] = tile_row[x];
+      tile_row[x] = Empty{};
+    }
+  }
 }
 
 

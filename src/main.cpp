@@ -18,7 +18,6 @@ using Time = std::chrono::time_point<Clock>;
 
 // Prototypes //
 void init_tui();
-void init_colours();
 void print_basic_info();
 [[nodiscard]] auto start_game_window() -> WindowPtr;
 void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick);
@@ -139,7 +138,7 @@ void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time
  
   clear_game_window(game_win);
 
-  const TileData& new_data = game.get_tile_data();
+  const TileGrid& new_data = game.get_tile_data();
   int y = 0;
   for (const auto& tile_row : new_data) {
     int x = 0;

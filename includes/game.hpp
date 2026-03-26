@@ -11,6 +11,7 @@
 #include <memory>
 #include <random>
 #include <variant>
+#include <unordered_set>
 
 class OccupiedTile {
 private:
@@ -37,7 +38,8 @@ public:
 struct Empty {};
 using Tile = std::variant<Empty, Taken, Falling>;
 
-using TileData = std::array<std::array<Tile, game_width>, game_height>;
+using TileRow = std::array<Tile, game_width>;
+using TileGrid = std::array<TileRow, game_height>;
 
 class GameSession {
 private:
@@ -46,22 +48,22 @@ private:
     Coordinates pivot_pos;
   };
 
-  TileData _tile_data;
+  TileGrid _tile_data;
   std::optional<FallingTetromino> _falling_tetromino;
   std::vector<std::unique_ptr<Tetromino>> _shape_bag;
   std::mt19937 _bag_rng{std::random_device{}()};
 
-  void place_tiles(const Colour tetromino_colour,
-      const std::array<Coordinates, 4>& falling_tile_positions);
+  void place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions);
   void refill_bag();
+  void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
 
 public:
   GameSession();
 
-  [[nodiscard]] auto get_tile_data() const noexcept -> const TileData&;
+  [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
   void update_falling_tiles(const Colour tetromino_colour,
-      const std::array<Coordinates, 4>& old_tile_positions,
-      const std::array<Coordinates, 4>& new_tile_positions);
+      const TilePositions& old_tile_positions,
+      const TilePositions& new_tile_positions);
   auto try_move(const Input input) -> bool;
   void tick();
   void drop_tetromino();

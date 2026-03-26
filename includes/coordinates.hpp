@@ -8,9 +8,10 @@ constexpr std::size_t game_height = 20;
 constexpr int signed_game_height = static_cast<int>(game_height);
 constexpr int signed_game_width = static_cast<int>(game_width);
 
+using Coordinate = int;
 struct Coordinates {
-  int x;
-  int y;
+  Coordinate x;
+  Coordinate y;
 };
 
 [[nodiscard]] auto operator+(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
