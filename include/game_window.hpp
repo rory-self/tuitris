@@ -23,6 +23,7 @@ private:
   void print_block(const Coordinates& pos, const Colour colour) const;
   void clear() const;
   void draw_border() const;
+  void init_score_window() const;
   void refresh() const;
 
 public:

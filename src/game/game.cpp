@@ -1,4 +1,5 @@
 #include "game/game.hpp"
+#include "coordinates.hpp"
 #include "game/tetromino.hpp"
 #include "inputs.hpp"
 
@@ -42,16 +43,20 @@ auto GameSession::get_score() const noexcept -> unsigned int {
 }
 
 void GameSession::refill_bag() {
+  constexpr std::size_t bag_size = 14;
   _shape_bag.clear();
-  _shape_bag.reserve(7);
+  _shape_bag.reserve(bag_size);
 
-  _shape_bag.emplace_back(std::make_unique<LTetromino>());
-  _shape_bag.emplace_back(std::make_unique<ITetromino>());
-  _shape_bag.emplace_back(std::make_unique<JTetromino>());
-  _shape_bag.emplace_back(std::make_unique<ZTetromino>());
-  _shape_bag.emplace_back(std::make_unique<OTetromino>());
-  _shape_bag.emplace_back(std::make_unique<STetromino>());
-  _shape_bag.emplace_back(std::make_unique<TTetromino>());
+  constexpr std::size_t bag_layers = bag_size / 7;
+  for (std::size_t i = 0; i < bag_layers; i++) {
+    _shape_bag.emplace_back(std::make_unique<LTetromino>());
+    _shape_bag.emplace_back(std::make_unique<ITetromino>());
+    _shape_bag.emplace_back(std::make_unique<JTetromino>());
+    _shape_bag.emplace_back(std::make_unique<ZTetromino>());
+    _shape_bag.emplace_back(std::make_unique<OTetromino>());
+    _shape_bag.emplace_back(std::make_unique<STetromino>());
+    _shape_bag.emplace_back(std::make_unique<TTetromino>());
+  }
 
   std::ranges::shuffle(_shape_bag, _bag_rng);
 }
@@ -157,7 +162,9 @@ void GameSession::drop_tetromino() {
     refill_bag();
   }
 
-  _falling_tetromino = {{ std::move(_shape_bag.back()), { 2, 2}}};
+  constexpr std::size_t drop_height = vanishing_area_height - 6;
+  constexpr std::size_t drop_x = game_width / 2;
+  _falling_tetromino = {{ std::move(_shape_bag.back()), { drop_x, drop_height }}};
   _shape_bag.pop_back();
 }
 

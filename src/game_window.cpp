@@ -3,17 +3,12 @@
 
 #include <ncurses.h>
 #include <ranges>
-#include <format>
 
 GameWindow::GameWindow(const GameSession& game)
   : _game_window(make_game_window())
   , _score_window(make_score_window())
   , _game(game) {
   draw_border();
-
-  box(_score_window.get(), 0, 0);
-  mvwprintw(_score_window.get(), 0, 0, "Score:");
-
   refresh();
 }
 
@@ -25,13 +20,20 @@ auto GameWindow::make_game_window() -> WindowPtr {
 auto GameWindow::make_score_window() -> WindowPtr {
   constexpr std::size_t score_win_width = 20;
   constexpr std::size_t score_win_height = 3;
-  WINDOW *const game_win = newwin(score_win_height, score_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2 + game_win_width);
-  return {game_win, delwin};
+  WINDOW *const score_win = newwin(score_win_height, score_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2 + game_win_width);
+  return {score_win, delwin};
+}
+
+void GameWindow::init_score_window() const {
+  box(_score_window.get(), 0, 0);
+  mvwprintw(_score_window.get(), 0, 1, "Score:");
 }
 
 void GameWindow::clear() const {
   werase(_game_window.get());
+  werase(_score_window.get());
   draw_border();
+  init_score_window();
 }
 
 void GameWindow::draw_border() const {
