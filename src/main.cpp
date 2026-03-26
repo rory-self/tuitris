@@ -12,7 +12,7 @@ namespace {
 constexpr int game_win_height = signed_game_height + 2;
 constexpr int game_win_width = (signed_game_width + 2) * 2;
 
-using WindowPtr = std::shared_ptr<WINDOW>;
+using WindowPtr = std::unique_ptr<WINDOW, decltype(&delwin)>;
 using Clock = std::chrono::steady_clock;
 using Time = std::chrono::time_point<Clock>;
 
@@ -20,9 +20,10 @@ using Time = std::chrono::time_point<Clock>;
 void init_tui();
 void print_basic_info();
 [[nodiscard]] auto start_game_window() -> WindowPtr;
-void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick);
-void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour colour);
-auto capture_input(const bool has_started) -> Input;
+void game_routine(GameSession& game, const WindowPtr& game_win, const Input input, Time& next_tick);
+void update_game_window(GameSession& game, const WindowPtr& game_win);
+void print_game_block(const WindowPtr& game_win, const Coordinates& pos, const Colour colour);
+[[nodiscard]] auto capture_input(const bool has_started) -> Input;
 } // namespace
 
 // Implementation //
@@ -86,7 +87,7 @@ auto start_game_window() -> WindowPtr {
   return {game_win, delwin};
 }
 
-void clear_game_window(WindowPtr game_win) {
+void clear_game_window(const WindowPtr& game_win) {
   werase(game_win.get());
   box(game_win.get(), 0, 0);
 }
@@ -120,7 +121,7 @@ auto capture_input(const bool has_started) -> Input {
   }
 }
 
-void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time& next_tick) {
+void game_routine(GameSession& game, const WindowPtr& game_win, const Input input, Time& next_tick) {
   const bool moved = game.try_move(input);
 
   bool ticked = false;
@@ -135,7 +136,11 @@ void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time
   if (not ticked and not moved) {
     return;
   }
- 
+
+  update_game_window(game, game_win);
+}
+
+void update_game_window(GameSession& game, const WindowPtr& game_win) {
   clear_game_window(game_win);
 
   const TileGrid& new_data = game.get_tile_data();
@@ -159,7 +164,7 @@ void game_routine(GameSession& game, WindowPtr game_win, const Input input, Time
   wrefresh(game_win.get());
 }
 
-void print_game_block(WindowPtr game_win, const Coordinates& pos, const Colour colour) {
+void print_game_block(const WindowPtr& game_win, const Coordinates& pos, const Colour colour) {
   if (pos.x >= signed_game_width or pos.y >= signed_game_height or pos.x < 0 or pos.y < 0) {
     throw std::out_of_range("Tile coordinate is out of range");
   }
