@@ -121,6 +121,10 @@ auto GameSession::get_tile_data() const noexcept -> const TileGrid& {
 }
 
 void GameSession::tick() {
+  if (_game_over) {
+    return;
+  }
+
   if (not _falling_tetromino.has_value()) {
     drop_tetromino();
     return;
@@ -135,7 +139,9 @@ void GameSession::tick() {
   const Colour tetromino_colour = tetromino->get_colour();
   for (const auto [x, y] : new_tile_positions) {
     if (y >= signed_game_height or is_taken(_tile_data[y][x])) {
-      place_tiles(tetromino_colour, curr_tile_positions);
+      if (not try_place_tiles(tetromino_colour, curr_tile_positions)) {
+        _game_over = true;
+      }
       return;
     }
   }
@@ -168,7 +174,7 @@ void GameSession::drop_tetromino() {
   _shape_bag.pop_back();
 }
 
-void GameSession::place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) {
+auto GameSession::try_place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) -> bool {
   std::unordered_set<Coordinate> y_coords;
   for (const auto& [x, y] : falling_tile_positions) {
     _tile_data[y][x] = Taken(tetromino_colour);
@@ -178,6 +184,12 @@ void GameSession::place_tiles(const Colour tetromino_colour, const TilePositions
   _falling_tetromino = std::nullopt;
 
   remove_filled_rows(y_coords);
+  return not_overflowing();
+}
+
+auto GameSession::not_overflowing() const -> bool {
+  constexpr std::size_t overflow_height = vanishing_area_height - 1;
+  return std::ranges::none_of(_tile_data[overflow_height], is_taken);
 }
 
 void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coords) {
