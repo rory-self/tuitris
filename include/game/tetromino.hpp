@@ -33,6 +33,7 @@ private:
   [[nodiscard]] auto get_next_rotation_pos(const bool clockwise) const noexcept -> RotationalPos;
   [[nodiscard]] auto get_tile_positions(const Coordinates& pivot_pos,
       const TileOffsets& offsets) const -> TilePositions;
+  [[nodiscard]] auto get_rotated_offsets(const bool clockwise) const -> TileOffsets;
 
 protected:
   TileOffsets _offsets;

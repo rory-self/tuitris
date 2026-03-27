@@ -39,18 +39,23 @@ auto Tetromino::get_tile_positions(const Coordinates& pivot_pos) const -> TilePo
   return get_tile_positions(pivot_pos, _offsets);
 }
 
-auto Tetromino::try_rotate(const RotationParams& params, const WallKickMap& kick_map) -> bool {
-  const auto& [pivot_pos, test, is_clockwise] = params;
-  const RotationalPos next_rotational_pos = get_next_rotation_pos(is_clockwise);
-
-  // TODO clean
-  TileOffsets new_tile_offsets = _offsets;
-  for (Coordinates& tile_offset : new_tile_offsets) {
-    Coordinate& coord_to_flip = is_clockwise ? tile_offset.y : tile_offset.x;
+auto Tetromino::get_rotated_offsets(const bool clockwise) const -> TileOffsets {
+  TileOffsets rotated_tile_offsets = _offsets;
+  for (Coordinates& tile_offset : rotated_tile_offsets) {
+    Coordinate& coord_to_flip = clockwise ? tile_offset.y : tile_offset.x;
     coord_to_flip *= -1;
 
     std::swap(tile_offset.x, tile_offset.y);
   }
+
+  return rotated_tile_offsets;
+}
+
+auto Tetromino::try_rotate(const RotationParams& params, const WallKickMap& kick_map) -> bool {
+  const auto& [pivot_pos, placement_test, is_clockwise] = params;
+  const RotationalPos next_rotational_pos = get_next_rotation_pos(is_clockwise);
+
+  const TileOffsets new_tile_offsets = get_rotated_offsets(is_clockwise);
 
   const KickOffsets& local_kick_offsets = kick_map[static_cast<std::size_t>(_rotational_pos)];
   const KickOffsets& next_kick_offsets = kick_map[static_cast<std::size_t>(next_rotational_pos)];
@@ -60,8 +65,9 @@ auto Tetromino::try_rotate(const RotationParams& params, const WallKickMap& kick
     const Coordinates new_pivot_pos = pivot_pos + kick_translation;
 
     const TilePositions new_tile_positions = get_tile_positions(new_pivot_pos, new_tile_offsets);
-    if (test(new_tile_positions)) {
+    if (placement_test(new_tile_positions)) {
       _offsets = new_tile_offsets;
+      _rotational_pos = next_rotational_pos;
       return true;
     }
   }
@@ -74,7 +80,7 @@ auto GeneralTetromino::try_rotate(const RotationParams& params) -> bool {
 }
 
 JTetromino::JTetromino() {
-  _offsets = {{{-1, 0}, {-1, 1}, {1, 0}}};
+  _offsets = {{{-1, 0}, {-1, -1}, {1, 0}}};
   _colour = Colour::Blue;
 }
 
@@ -84,7 +90,7 @@ OTetromino::OTetromino() {
 }
 
 LTetromino::LTetromino() {
-  _offsets = {{{-1, 0}, {1, 0}, {1, 1}}};
+  _offsets = {{{-1, 0}, {1, 0}, {1, -1}}};
   _colour = Colour::Orange;
 }
 
