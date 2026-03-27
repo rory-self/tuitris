@@ -43,12 +43,12 @@ auto GameSession::get_score() const noexcept -> unsigned int {
 }
 
 void GameSession::refill_bag() {
-  constexpr std::size_t bag_size = 14;
+  constexpr std::size_t num_unique_tetrominos = 7;
+  constexpr std::size_t num_bag_layers = 2;
   _shape_bag.clear();
-  _shape_bag.reserve(bag_size);
+  _shape_bag.reserve(num_unique_tetrominos * num_bag_layers);
 
-  constexpr std::size_t bag_layers = bag_size / 7;
-  for (std::size_t i = 0; i < bag_layers; i++) {
+  for (std::size_t i = 0; i < num_bag_layers; i++) {
     _shape_bag.emplace_back(std::make_unique<LTetromino>());
     _shape_bag.emplace_back(std::make_unique<ITetromino>());
     _shape_bag.emplace_back(std::make_unique<JTetromino>());
@@ -104,10 +104,28 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
 }
 
 auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino,
-    const TilePositions& curr_tile_positions, const bool clockwise) -> bool {
+  const TilePositions& curr_tile_positions, const bool clockwise) -> bool {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
-  const bool can_rotate = tetromino->rotate(tetromino_center_pos, clockwise);
-  if (not can_rotate) {
+  const auto placement_test = [&grid = _tile_data, &tetromino_center_pos](const TilePositions& new_tile_positions) -> bool {
+    const auto is_invalid_placement = [&grid](const Coordinates& pos) -> bool {
+      auto [x, y] = pos;
+      if (x < 0 or x >= signed_game_width or y < 0 or y >= signed_game_height) {
+        return true;
+      }
+
+      return is_taken(grid[y][x]);
+    };
+
+    if (std::ranges::none_of(new_tile_positions, is_invalid_placement)) {
+      tetromino_center_pos = new_tile_positions.back();
+
+      return true;
+    }
+    return false;
+  };
+
+  const bool rotated = tetromino->try_rotate({tetromino_center_pos, placement_test, clockwise});
+  if (not rotated) {
     return false;
   }
 

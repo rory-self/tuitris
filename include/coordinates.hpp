@@ -17,5 +17,6 @@ struct Coordinates {
 };
 
 [[nodiscard]] auto operator+(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
+[[nodiscard]] auto operator-(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
 
 #endif // COORDINATES_HPP
