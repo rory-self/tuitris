@@ -1,7 +1,7 @@
-#include "game/game.hpp"
 #include "coordinates.hpp"
-#include "game/tetromino.hpp"
 #include "inputs.hpp"
+#include "game/game.hpp"
+#include "game/tetromino.hpp"
 
 #include <algorithm>
 #include <variant>
@@ -49,13 +49,10 @@ void GameSession::refill_bag() {
   _shape_bag.reserve(num_unique_tetrominos * num_bag_layers);
 
   for (std::size_t i = 0; i < num_bag_layers; i++) {
-    _shape_bag.emplace_back(std::make_unique<LTetromino>());
-    _shape_bag.emplace_back(std::make_unique<ITetromino>());
-    _shape_bag.emplace_back(std::make_unique<JTetromino>());
-    _shape_bag.emplace_back(std::make_unique<ZTetromino>());
-    _shape_bag.emplace_back(std::make_unique<OTetromino>());
-    _shape_bag.emplace_back(std::make_unique<STetromino>());
-    _shape_bag.emplace_back(std::make_unique<TTetromino>());
+    for (std::size_t j = 0; j < num_unique_tetrominos; j++) {
+      const Tetromino tetromino(static_cast<TetrominoShape>(j));
+      _shape_bag.push_back(tetromino);
+    }
   }
 
   std::ranges::shuffle(_shape_bag, _bag_rng);
@@ -68,9 +65,9 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
 
   FallingTetromino& falling_tetromino = _falling_tetromino.value();
   auto& [tetromino, tetromino_center_pos] = falling_tetromino; 
-  const Colour tetromino_colour = tetromino->get_colour();
+  const Colour tetromino_colour = tetromino.get_colour();
 
-  const TilePositions old_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
+  const TilePositions old_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
   const bool is_clockwise_rotation = transformation == Transformation::RotateClockwise;
   if (is_clockwise_rotation or transformation == Transformation::RotateAntiClockwise) {
     return try_rotate_tetromino(falling_tetromino, old_tile_positions, is_clockwise_rotation);
@@ -91,7 +88,7 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
   }
 
   const Coordinates new_center_pos = { .x = new_center_x, .y = tetromino_center_pos.y };
-  const TilePositions new_tile_positions = tetromino->get_tile_positions(new_center_pos);
+  const TilePositions new_tile_positions = tetromino.get_tile_positions(new_center_pos);
   for (const auto [x, y] : new_tile_positions) {
     if (x < 0 or x >= signed_game_width or is_taken(_tile_data[y][x])) {
       return false;
@@ -124,13 +121,13 @@ auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino,
     return false;
   };
 
-  const bool rotated = tetromino->try_rotate({tetromino_center_pos, placement_test, clockwise});
+  const bool rotated = tetromino.try_rotate({tetromino_center_pos, placement_test, clockwise});
   if (not rotated) {
     return false;
   }
 
-  const TilePositions new_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
-  update_falling_tiles(tetromino->get_colour(), curr_tile_positions, new_tile_positions);
+  const TilePositions new_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
+  update_falling_tiles(tetromino.get_colour(), curr_tile_positions, new_tile_positions);
   return true;
 }
 
@@ -152,9 +149,9 @@ void GameSession::tick() {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
 
   const Coordinates new_center_pos = { .x = tetromino_center_pos.x, .y = tetromino_center_pos.y + 1 };
-  const TilePositions curr_tile_positions = tetromino->get_tile_positions(tetromino_center_pos);
-  const TilePositions new_tile_positions = tetromino->get_tile_positions(new_center_pos);
-  const Colour tetromino_colour = tetromino->get_colour();
+  const TilePositions curr_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
+  const TilePositions new_tile_positions = tetromino.get_tile_positions(new_center_pos);
+  const Colour tetromino_colour = tetromino.get_colour();
   for (const auto [x, y] : new_tile_positions) {
     if (y >= signed_game_height or is_taken(_tile_data[y][x])) {
       place_tiles(tetromino_colour, curr_tile_positions);

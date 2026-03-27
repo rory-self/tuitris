@@ -9,7 +9,6 @@
 #include <array>
 #include <optional>
 #include <vector>
-#include <memory>
 #include <random>
 #include <unordered_set>
 
@@ -19,14 +18,14 @@ using TileGrid = std::array<TileRow, game_height>;
 class GameSession {
 private:
   struct FallingTetromino {
-    std::unique_ptr<Tetromino> tetromino;
+    Tetromino tetromino;
     Coordinates pivot_pos;
   };
 
   bool _game_over = false;
   TileGrid _tile_data;
   std::optional<FallingTetromino> _falling_tetromino;
-  std::vector<std::unique_ptr<Tetromino>> _shape_bag;
+  std::vector<Tetromino> _shape_bag;
   std::mt19937 _bag_rng{std::random_device{}()};
   unsigned int _score = 0;
 

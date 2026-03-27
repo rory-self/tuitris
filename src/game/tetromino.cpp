@@ -3,6 +3,65 @@
 
 #include <ranges>
 
+namespace {
+  constexpr WallKickMap general_kick_map = {{
+    {{ { 0, 0 }, {  0, 0 }, {  0,  0 }, { 0, 0 }, {  0, 0 } }}, // 0
+    {{ { 0, 0 }, {  1, 0 }, {  1, -1 }, { 0, 2 }, {  1, 2 } }}, // 90
+    {{ { 0, 0 }, {  0, 0 }, {  0,  0 }, { 0, 0 }, {  0, 0 } }}, // 180
+    {{ { 0, 0 }, { -1, 0 }, { -1, -1 }, { 0, 2 }, { -1, 2 } }}, // 270
+  }};
+
+  constexpr WallKickMap i_kick_map = {{
+    {{ {  0, 0 }, { -1, 0 }, {  2, 0 }, { -1,  0 }, {  2,  0 } }}, // 0
+    {{ { -1, 0 }, {  0, 0 }, {  0, 0 }, {  0,  1 }, {  0, -2 } }}, // 90
+    {{ { -1, 1 }, {  1, 1 }, { -2, 1 }, {  1,  0 }, { -2,  0 } }}, // 180
+    {{ {  0, 1 }, {  0, 1 }, {  0, 1 }, {  0, -1 }, {  0,  2 } }}  // 270
+  }};
+}
+
+Tetromino::Tetromino(const TetrominoShape shape) {
+    using enum TetrominoShape;
+    using enum Colour;
+
+    switch (shape) {
+      case L:
+        _tile_offsets = {{ {-1, 0}, {1, 0}, {1, -1} }};
+        _kick_map = general_kick_map;
+        _colour = Orange;
+        break;
+      case J:
+        _tile_offsets = {{ {-1, 0}, {-1, -1}, {1, 0} }};
+        _kick_map = general_kick_map;
+        _colour = Blue;
+        break;
+      case T:
+        _tile_offsets = {{{-1, 0}, {0, 1}, {1, 0}}};
+        _kick_map = general_kick_map;
+        _colour = Purple;
+        break;
+      case S:
+        _tile_offsets = {{{-1, 0}, {0, 1}, {1, 1}}};
+        _kick_map = general_kick_map;
+        _colour = Green;
+        break;
+      case Z:
+        _tile_offsets = {{{-1, 1}, {0, 1}, {1, 0}}};
+        _kick_map = general_kick_map;
+        _colour = Red;
+        break;
+      case I:
+        _tile_offsets = {{{-1, 0}, {1, 0}, {2, 0}}};
+        _kick_map = i_kick_map;
+        _colour = Cyan;
+        break;
+      case O:
+        _tile_offsets = {{{0, 1}, {1, 1}, {1, 0}}};
+        _kick_map = std::nullopt;
+        _colour = Yellow;
+        break;
+    }
+  }
+
 auto Tetromino::get_next_rotation_pos(const bool clockwise) const noexcept -> RotationalPos {
   using enum RotationalPos;
 
@@ -36,11 +95,11 @@ auto Tetromino::get_tile_positions(const Coordinates& pivot_pos,
 }
 
 auto Tetromino::get_tile_positions(const Coordinates& pivot_pos) const -> TilePositions {
-  return get_tile_positions(pivot_pos, _offsets);
+  return get_tile_positions(pivot_pos, _tile_offsets);
 }
 
 auto Tetromino::get_rotated_offsets(const bool clockwise) const -> TileOffsets {
-  TileOffsets rotated_tile_offsets = _offsets;
+  TileOffsets rotated_tile_offsets = _tile_offsets;
   for (Coordinates& tile_offset : rotated_tile_offsets) {
     Coordinate& coord_to_flip = clockwise ? tile_offset.y : tile_offset.x;
     coord_to_flip *= -1;
@@ -51,12 +110,17 @@ auto Tetromino::get_rotated_offsets(const bool clockwise) const -> TileOffsets {
   return rotated_tile_offsets;
 }
 
-auto Tetromino::try_rotate(const RotationParams& params, const WallKickMap& kick_map) -> bool {
+auto Tetromino::try_rotate(const RotationParams& params) -> bool {
+  if (not _kick_map.has_value()) {
+    return false;
+  }
+
   const auto& [pivot_pos, placement_test, is_clockwise] = params;
   const RotationalPos next_rotational_pos = get_next_rotation_pos(is_clockwise);
 
   const TileOffsets new_tile_offsets = get_rotated_offsets(is_clockwise);
 
+  const WallKickMap& kick_map = _kick_map.value().get();
   const KickOffsets& local_kick_offsets = kick_map[static_cast<std::size_t>(_rotational_pos)];
   const KickOffsets& next_kick_offsets = kick_map[static_cast<std::size_t>(next_rotational_pos)];
 
@@ -66,59 +130,12 @@ auto Tetromino::try_rotate(const RotationParams& params, const WallKickMap& kick
 
     const TilePositions new_tile_positions = get_tile_positions(new_pivot_pos, new_tile_offsets);
     if (placement_test(new_tile_positions)) {
-      _offsets = new_tile_offsets;
+      _tile_offsets = new_tile_offsets;
       _rotational_pos = next_rotational_pos;
       return true;
     }
   }
 
-  return false;
-}
-
-auto GeneralTetromino::try_rotate(const RotationParams& params) -> bool {
-  return Tetromino::try_rotate(params, _kick_data);
-}
-
-JTetromino::JTetromino() {
-  _offsets = {{{-1, 0}, {-1, -1}, {1, 0}}};
-  _colour = Colour::Blue;
-}
-
-OTetromino::OTetromino() {
-  _offsets = {{{0, 1}, {1, 1}, {1, 0}}};
-  _colour = Colour::Yellow;
-}
-
-LTetromino::LTetromino() {
-  _offsets = {{{-1, 0}, {1, 0}, {1, -1}}};
-  _colour = Colour::Orange;
-}
-
-ITetromino::ITetromino() {
-  _offsets = {{{-1, 0}, {1, 0}, {2, 0}}};
-  _colour = Colour::Cyan;
-}
-
-auto ITetromino::try_rotate(const RotationParams& params) -> bool {
-  return Tetromino::try_rotate(params, _kick_data);
-}
-
-STetromino::STetromino() {
-  _offsets = {{{-1, 0}, {0, 1}, {1, 1}}};
-  _colour = Colour::Green;
-}
-
-ZTetromino::ZTetromino() {
-  _offsets = {{{-1, 1}, {0, 1}, {1, 0}}};
-  _colour = Colour::Red;
-}
-
-TTetromino::TTetromino() {
-  _offsets = {{{-1, 0}, {0, 1}, {1, 0}}};
-  _colour = Colour::Purple;
-}
-
-auto OTetromino::try_rotate(const RotationParams& params) -> bool {
   return false;
 }
 
