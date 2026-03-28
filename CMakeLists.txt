@@ -19,6 +19,13 @@ if(Curses_FOUND AND NOT TARGET Curses::Curses)
   )
 endif()
 
+# Google Test
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+
+  URL https://github.com/google/googletest/archive/015950a936fc6b7cadca20eb0dbf6f054e6637fb.zip
+)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
