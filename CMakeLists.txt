@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 # ncurses
-find_package(Curses)
+find_package(Curses REQUIRED)
 if(Curses_FOUND AND NOT TARGET Curses::Curses)
   add_library(Curses::Curses INTERFACE IMPORTED)
   set_target_properties(
