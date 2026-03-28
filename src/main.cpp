@@ -14,7 +14,7 @@ using Time = std::chrono::time_point<Clock>;
 // Prototypes //
 void init_tui();
 void print_basic_info();
-void game_routine(GameSession& game, const GameWindows& game_win, const Input input, Time& next_tick);
+void game_routine(GameSession& game, const GameWindows& game_win, Input input, Time& next_tick);
 } // namespace
 
 // Implementation //
@@ -55,14 +55,13 @@ void init_tui() {
   TUIColours::init();
   keypad(stdscr, true);
 
-  std::signal(SIGINT, [](int) {
+  std::signal(SIGINT, [](int) -> void {
       endwin();
       std::exit(0);
   });
 }
 
 void print_basic_info() {
-  mvprintw(LINES / 4, (COLS - 7) / 2, "Tuitris"); 
   mvprintw(LINES * 19 / 20, COLS / 8, "Quit (x)");
   mvprintw(LINES / 2, COLS / 2, "'s' to start");
   refresh();

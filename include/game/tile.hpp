@@ -10,7 +10,7 @@ private:
   Colour _colour;
 
 protected:
-  OccupiedTile(const Colour colour);
+  OccupiedTile(Colour colour);
 
 public:
   [[nodiscard]] auto get_colour() const noexcept -> Colour;
@@ -18,12 +18,12 @@ public:
 
 class Taken : public OccupiedTile {
 public:
-  Taken(const Colour colour);
+  Taken(Colour colour);
 };
 
 class Falling : public OccupiedTile{
 public:
-  Falling(const Colour colour);
+  Falling(Colour colour);
 };
 
 struct Empty {};

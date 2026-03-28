@@ -4,15 +4,16 @@
 #include <ncurses.h>
 #include <unordered_map>
 #include <array>
+#include <cstdint>
 
-enum class Colour { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
+enum class Colour : std::uint8_t { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
 
 class TUIColours {
 private:
   static constexpr std::size_t NUM_COLOURS = 7;
 
   inline static std::unordered_map<Colour, short> _pair_id_by_colour = {};
-  inline static constexpr std::array<std::pair<Colour, short>, NUM_COLOURS> _colour_mappings = {{
+  static constexpr std::array<std::pair<Colour, short>, NUM_COLOURS> _colour_mappings = {{
     { Colour::Cyan, COLOR_CYAN },
     { Colour::Yellow, COLOR_YELLOW },
     { Colour::Purple, COLOR_MAGENTA },
@@ -23,7 +24,7 @@ private:
   }};
 
 public:
-  [[nodiscard]] static auto colour_to_ncurses_pair(const Colour colour) -> chtype;
+  [[nodiscard]] static auto colour_to_ncurses_pair(Colour colour) -> chtype;
   static void init();
 };
 

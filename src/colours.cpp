@@ -10,11 +10,11 @@ void TUIColours::init() {
   use_default_colors();
 
   for (std::size_t i = 0; i < NUM_COLOURS; i++) {
-    const short id = static_cast<short>(i);
-    const auto [colour, ncurses_colour] = _colour_mappings[i];
+    const auto colour_id = static_cast<short>(i);
+    const auto [colour, ncurses_colour] = _colour_mappings.at(i);
 
-    init_pair(id, ncurses_colour, ncurses_colour);
-    _pair_id_by_colour[colour] = id;
+    init_pair(colour_id, ncurses_colour, ncurses_colour);
+    _pair_id_by_colour[colour] = colour_id;
   }
 }
 

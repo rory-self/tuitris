@@ -23,7 +23,7 @@ void TetrominoBag::refill() {
 }
 
 auto TetrominoBag::take() -> Tetromino {
-  Tetromino tetromino = std::move(_bag.back());
+  Tetromino tetromino = _bag.back();
   _bag.pop_back();
 
   if (_bag.empty()) {

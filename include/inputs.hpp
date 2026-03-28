@@ -2,8 +2,9 @@
 #define INPUTS_HPP
 
 #include <optional>
+#include <cstdint>
 
-enum Input {
+enum Input : std::uint8_t {
   Quit = 'x',
   Start = 's',
   Left = 'a',
@@ -14,7 +15,7 @@ enum Input {
   None,
 };
 
-enum class Transformation {
+enum class Transformation : std::uint8_t {
   Left,
   Right,
   RotateClockwise,
@@ -22,7 +23,7 @@ enum class Transformation {
   Drop,
 };
 
-[[nodiscard]] auto capture_input(const bool game_started) -> Input;
-[[nodiscard]] auto input_to_transformation(const Input input) -> std::optional<Transformation>;
+[[nodiscard]] auto capture_input(bool game_started) -> Input;
+[[nodiscard]] auto input_to_transformation(Input input) -> std::optional<Transformation>;
 
 #endif //INPUTS_HPP

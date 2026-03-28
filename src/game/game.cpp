@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <variant>
+#include <utility>
 
 namespace {
 [[nodiscard]] auto is_taken(const Tile& tile) noexcept -> bool {
@@ -51,7 +52,13 @@ GameSession::GameSession() {
 }
 
 auto GameSession::get_tile(const Coordinates& pos) const -> const Tile& {
-  return _tile_data[pos.y][pos.x];
+  const auto& [x, y] = pos;
+  return _tile_data.at(y).at(x);
+}
+
+auto GameSession::get_tile(const Coordinates& pos) -> Tile& {
+  const auto& [x, y] = pos;
+  return _tile_data.at(y).at(x);
 }
 
 auto GameSession::get_score() const noexcept -> unsigned int {
@@ -164,27 +171,30 @@ void GameSession::update_falling_tiles(const Colour tetromino_colour,
     const TilePositions& old_tile_positions,
     const TilePositions& new_tile_positions) {
 
-  for (const auto [x, y] : old_tile_positions) {
-    _tile_data[y][x] = Empty{};
+  for (const Coordinates& pos : old_tile_positions) {
+    get_tile(pos) = Empty{};
   }
 
-  for (const auto [x, y] : new_tile_positions) {
-    _tile_data[y][x] = Falling(tetromino_colour);
+  for (const Coordinates& pos : new_tile_positions) {
+    get_tile(pos) = Falling(tetromino_colour);
   }
 }
 
 void GameSession::drop_tetromino() {
   constexpr std::size_t drop_height = vanishing_area_height - 6;
   constexpr std::size_t drop_x = game_width / 2;
-  _falling_tetromino = {{ _bag.take(), { drop_x, drop_height }}};
+  _falling_tetromino = {{
+    .tetromino = _bag.take(),
+    .pivot_pos = { .x = drop_x, .y = drop_height }
+  }};
 }
 
 void GameSession::place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) {
   std::unordered_set<Coordinate> y_coords;
-  for (const auto& [x, y] : falling_tile_positions) {
-    _tile_data[y][x] = Taken(tetromino_colour);
+  for (const Coordinates& pos : falling_tile_positions) {
+    get_tile(pos) = Taken(tetromino_colour);
 
-    y_coords.emplace(y);
+    y_coords.emplace(pos.y);
   }
   _falling_tetromino = std::nullopt;
 
@@ -201,10 +211,10 @@ auto GameSession::is_overflowing() const -> bool {
 
 void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coords) {
   std::optional<Coordinate> bottom_row_removed;
-  unsigned int rows_removed = 0;
+  int rows_removed = 0;
 
-  for (const Coordinate y : y_coords) {
-    TileRow& tile_row = _tile_data[y];
+  for (const Coordinate y_coord : y_coords) {
+    TileRow& tile_row = _tile_data.at(y_coord);
 
     bool row_filled = true;
     for (const Tile& tile : tile_row) {
@@ -218,8 +228,8 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
       continue;
     }
 
-    const Coordinate curr_bottom_row = bottom_row_removed.value_or(y);
-    bottom_row_removed = std::max(curr_bottom_row, y);
+    const Coordinate curr_bottom_row = bottom_row_removed.value_or(y_coord);
+    bottom_row_removed = std::max(curr_bottom_row, y_coord);
     rows_removed++;
     for (Tile& tile : tile_row) {
       tile = Empty{};
@@ -231,17 +241,17 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
   }
 
   // make tiles above fall
-  for (Coordinate y = bottom_row_removed.value() - rows_removed; y >= 0; y--) {
-    TileRow& tile_row = _tile_data[y];
-    TileRow& row_below = _tile_data[y + rows_removed];
+  for (Coordinate y_coord = bottom_row_removed.value() - rows_removed; y_coord >= 0; y_coord--) {
+    TileRow& tile_row = _tile_data.at(y_coord);
+    TileRow& row_below = _tile_data.at(y_coord + rows_removed);
 
-    for (Coordinate x = 0; x < signed_game_width; x++) {
-      if (std::holds_alternative<Empty>(tile_row[x])) {
+    for (Coordinate x_coord = 0; x_coord < signed_game_width; x_coord++) {
+      if (std::holds_alternative<Empty>(tile_row.at(x_coord))) {
         continue;
       }
 
-      row_below[x] = tile_row[x];
-      tile_row[x] = Empty{};
+      row_below.at(x_coord) = tile_row.at(x_coord);
+      tile_row.at(x_coord) = Empty{};
     }
   }
 
@@ -249,21 +259,29 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
 }
 
 void GameSession::score_removed_rows(const unsigned int rows_removed) {
-  // TODO migrate to modern scoring system
   switch (rows_removed) {
-    case 1:
-      _score += 40;
+    case 1: {
+      constexpr unsigned int single_score = 40;
+      _score += single_score;
       break;
-    case 2:
-      _score += 100;
+    }
+    case 2: {
+      constexpr unsigned int double_score = 100;
+      _score += double_score;
       break;
-    case 3:
-      _score += 400;
+    }
+    case 3: {
+      constexpr unsigned int triple_score = 400;
+      _score += triple_score;
       break;
-    case 4:
-      _score += 1200;
+    }
+    case 4: {
+      constexpr unsigned int tetris_score = 1200;
+      _score += tetris_score;
       break;
+    }
+    default:
+      std::unreachable();
   }
 }
-
 

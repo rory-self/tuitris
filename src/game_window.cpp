@@ -93,12 +93,15 @@ void GameWindows::update() const {
   clear();
   const TileGrid& new_data = _game.get_tile_data();
 
-  for (const auto& [y, tile_row] : std::views::enumerate(new_data)) {
-    for (const auto& [x, tile] : std::views::enumerate(tile_row)) {
-      std::visit([&](const auto& t) {
-        if constexpr (not std::is_same_v<std::decay_t<decltype(t)>, Empty>) {
-            const Colour tile_colour = t.get_colour();
-            const Coordinates tile_coords = { .x = static_cast<int>(x), .y = static_cast<int>(y) };
+  for (const auto& [y_coord, tile_row] : std::views::enumerate(new_data)) {
+    for (const auto& [x_coord, tile] : std::views::enumerate(tile_row)) {
+      std::visit([&](const auto& visited_tile) -> void {
+        if constexpr (not std::is_same_v<std::decay_t<decltype(visited_tile)>, Empty>) {
+            const Colour tile_colour = visited_tile.get_colour();
+            const Coordinates tile_coords = {
+              .x = static_cast<Coordinate>(x_coord),
+              .y = static_cast<Coordinate>(y_coord)
+            };
 
             print_block(_game_window, tile_coords, tile_colour);
         }

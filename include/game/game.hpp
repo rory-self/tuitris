@@ -28,13 +28,13 @@ private:
 
   unsigned int _score = 0;
 
-  void place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions);
+  void place_tiles(Colour tetromino_colour, const TilePositions& falling_tile_positions);
   [[nodiscard]] auto is_overflowing() const -> bool;
   [[nodiscard]] auto is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool;
   void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
-  void score_removed_rows(const unsigned int rows_removed);
+  void score_removed_rows(unsigned int rows_removed);
   auto try_rotate_tetromino(FallingTetromino& falling_tetromino,
-      const TilePositions& tile_positions, const bool clockwise) -> bool;
+      const TilePositions& tile_positions, bool clockwise) -> bool;
   void drop_tetromino();
 
 public:
@@ -42,13 +42,14 @@ public:
 
   [[nodiscard]] auto get_score() const noexcept -> unsigned int;
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
-  [[nodiscard]] auto get_tile(const Coordinates& coords) const -> const Tile&;
+  [[nodiscard]] auto get_tile(const Coordinates& pos) const -> const Tile&;
+  [[nodiscard]] auto get_tile(const Coordinates& pos) -> Tile&;
   [[nodiscard]] auto get_bag() const noexcept -> const TetrominoBag&;
 
-  void update_falling_tiles(const Colour tetromino_colour,
+  void update_falling_tiles(Colour tetromino_colour,
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);
-  auto try_transformation(const Transformation transformation) -> bool;
+  auto try_transformation(Transformation transformation) -> bool;
   void tick();
 };
 

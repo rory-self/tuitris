@@ -17,6 +17,8 @@ auto capture_input(const bool game_started) -> Input {
       return Input::Right;
     case ERR:
       return Input::None;
+    default:
+      break;
   }
 
   const char input = std::tolower(raw_input);

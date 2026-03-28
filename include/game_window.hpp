@@ -23,7 +23,7 @@ private:
   [[nodiscard]] static auto make_score_window() -> WindowPtr;
   [[nodiscard]] static auto make_piece_window() -> WindowPtr;
   static void init_titled_window(const WindowPtr& window, std::string_view title);
-  static void print_block(const WindowPtr& window, const Coordinates& pos, const Colour colour);
+  static void print_block(const WindowPtr& window, const Coordinates& pos, Colour colour);
 
   void clear() const;
   void draw_border() const;
