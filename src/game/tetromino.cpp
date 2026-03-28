@@ -11,12 +11,12 @@ Tetromino::Tetromino(const TetrominoShape shape) {
 
     switch (shape) {
       case L:
-        _tile_offsets = {{{.x = 1, .y = 0}, {.x = 1, .y = 0}, { .x = 1, .y = -1}}};
+        _tile_offsets = {{{.x = -1, .y = 0}, {.x = 1, .y = 0}, { .x = 1, .y = -1}}};
         _kick_map = general_kick_map;
         _colour = Orange;
         break;
       case J:
-        _tile_offsets = {{{.x = 1, .y = 0}, {.x = -1, .y = -1}, {.x = 1, .y = 0}}};
+        _tile_offsets = {{{.x = -1, .y = 0}, {.x = -1, .y = -1}, {.x = 1, .y = 0}}};
         _kick_map = general_kick_map;
         _colour = Blue;
         break;
