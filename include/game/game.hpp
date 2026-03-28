@@ -31,6 +31,7 @@ private:
   [[nodiscard]] auto is_overflowing() const -> bool;
   [[nodiscard]] auto is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool;
 
+  [[nodiscard]] auto get_tile(const Coordinates& pos) -> Tile&;
   void place_tiles(Colour tetromino_colour, const TilePositions& falling_tile_positions);
   void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
   void score_removed_rows(unsigned int rows_removed);
@@ -41,14 +42,12 @@ private:
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);
 
-
 public:
   GameSession();
 
   [[nodiscard]] auto get_score() const noexcept -> unsigned int;
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
   [[nodiscard]] auto get_tile(const Coordinates& pos) const -> const Tile&;
-  [[nodiscard]] auto get_tile(const Coordinates& pos) -> Tile&;
   [[nodiscard]] auto get_bag() const noexcept -> const TetrominoBag&;
 
   auto try_transformation(Transformation transformation) -> bool;
