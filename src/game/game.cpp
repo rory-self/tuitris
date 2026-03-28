@@ -58,9 +58,8 @@ auto GameSession::get_score() const noexcept -> unsigned int {
   return _score;
 }
 
-auto GameSession::get_next_tetromino_shape() const -> const TileOffsets& {
-  // assume the bag is always filled -> wcgw?
-  return _bag.get_next_tetromino_offsets();
+auto GameSession::get_bag() const noexcept -> const TetrominoBag& {
+  return _bag;
 }
 
 auto GameSession::try_transformation(const Transformation transformation) -> bool {

@@ -8,7 +8,8 @@ GameWindows::GameWindows(const GameSession& game)
   : _game_window(make_game_window())
   , _piece_window(make_piece_window())
   , _score_window(make_score_window())
-  , _game(game) {
+  , _game(game)
+  , _bag(_game.get_bag()) {
   draw_border();
   init_score_window();
   init_piece_window();
@@ -79,7 +80,7 @@ void GameWindows::update_score() const {
 }
 
 void GameWindows::update_next_piece() const {
-  const TileOffsets offsets = _game.get_next_tetromino_shape();
+  const TileOffsets offsets = _bag.get_next_tetromino_offsets();
   constexpr Coordinates center_pos = { .x = 1, .y = 1};
   
   print_block(_piece_window, center_pos, Colour::Cyan);

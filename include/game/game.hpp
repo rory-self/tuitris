@@ -43,7 +43,7 @@ public:
   [[nodiscard]] auto get_score() const noexcept -> unsigned int;
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
   [[nodiscard]] auto get_tile(const Coordinates& coords) const -> const Tile&;
-  [[nodiscard]] auto get_next_tetromino_shape() const -> const TileOffsets&;
+  [[nodiscard]] auto get_bag() const noexcept -> const TetrominoBag&;
 
   void update_falling_tiles(const Colour tetromino_colour,
       const TilePositions& old_tile_positions,

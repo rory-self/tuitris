@@ -13,10 +13,11 @@ private:
   static constexpr int game_win_width = (signed_game_width + 2) * 2;
   using WindowPtr = std::unique_ptr<WINDOW, decltype(&delwin)>;
 
-  WindowPtr _game_window;
-  WindowPtr _piece_window;
-  WindowPtr _score_window;
+  const WindowPtr _game_window;
+  const WindowPtr _piece_window;
+  const WindowPtr _score_window;
   const GameSession& _game;
+  const TetrominoBag& _bag;
 
   [[nodiscard]] static auto make_game_window() -> WindowPtr;
   [[nodiscard]] static auto make_score_window() -> WindowPtr;
