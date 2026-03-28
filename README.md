@@ -12,7 +12,7 @@ pacman -S ncurses
 ## Build from source
 Clone the repository locally:
 ```
-git clone git@github.com:rory-self/tuitris.git
+git clone https://github.com/rory-self/tuitris.git
 ```
 
 Build the project using CMake in the cloned directory:
