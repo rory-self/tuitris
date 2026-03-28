@@ -7,9 +7,6 @@
 #include <variant>
 
 namespace {
-constexpr std::size_t num_unique_tetrominos = 7;
-constexpr std::size_t num_bag_layers = 2;
-
 [[nodiscard]] auto is_taken(const Tile& tile) noexcept -> bool {
   return std::holds_alternative<Taken>(tile);
 }
@@ -51,9 +48,6 @@ GameSession::GameSession() {
       tile = Empty{};
     }
   }
-
-  _shape_bag.reserve(num_unique_tetrominos * num_bag_layers);
-  refill_bag();
 }
 
 auto GameSession::get_tile(const Coordinates& pos) const -> const Tile& {
@@ -66,19 +60,7 @@ auto GameSession::get_score() const noexcept -> unsigned int {
 
 auto GameSession::get_next_tetromino_shape() const -> const TileOffsets& {
   // assume the bag is always filled -> wcgw?
-  return _shape_bag.back().get_offsets();
-}
-
-void GameSession::refill_bag() {
-   _shape_bag.clear();
-
-  for (std::size_t i = 0; i < num_bag_layers; i++) {
-    for (std::size_t j = 0; j < num_unique_tetrominos; j++) {
-      _shape_bag.emplace_back(static_cast<TetrominoShape>(j));
-    }
-  }
-
-  std::ranges::shuffle(_shape_bag, _bag_rng);
+  return _bag.get_next_tetromino_offsets();
 }
 
 auto GameSession::try_transformation(const Transformation transformation) -> bool {
@@ -197,12 +179,7 @@ void GameSession::update_falling_tiles(const Colour tetromino_colour,
 void GameSession::drop_tetromino() {
   constexpr std::size_t drop_height = vanishing_area_height - 6;
   constexpr std::size_t drop_x = game_width / 2;
-  _falling_tetromino = {{ std::move(_shape_bag.back()), { drop_x, drop_height }}};
-  _shape_bag.pop_back();
-
-  if (_shape_bag.empty()) {
-    refill_bag();
-  }
+  _falling_tetromino = {{ _bag.take(), { drop_x, drop_height }}};
 }
 
 void GameSession::place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) {

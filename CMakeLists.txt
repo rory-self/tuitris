@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
   src/game/game.cpp
   src/game/tetromino.cpp
   src/game/tile.cpp
+  src/game/tetromino_bag.cpp
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE Curses::Curses)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
