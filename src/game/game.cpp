@@ -107,16 +107,14 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
 auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino,
   const TilePositions& curr_tile_positions, const bool clockwise) -> bool {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
-  const auto placement_test = [this, &tetromino_center_pos](const TilePositions& new_tile_positions) -> bool {
-    const auto& is_invalid_placement = [this](const Coordinates& pos) -> bool {
-      return this->is_taken_or_out_of_bounds(pos);
-    };
 
+  const auto& is_invalid_placement = std::bind_front(&GameSession::is_taken_or_out_of_bounds, this);
+  const auto placement_test = [&is_invalid_placement, &tetromino_center_pos](const TilePositions& new_tile_positions) -> bool { 
     if (std::ranges::none_of(new_tile_positions, is_invalid_placement)) {
       tetromino_center_pos = new_tile_positions.back();
-
       return true;
     }
+
     return false;
   };
 
