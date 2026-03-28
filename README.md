@@ -9,9 +9,7 @@ E.g: On Arch Linux:
 pacman -S ncurses
 ```
 
-## Installation / Building
-> A local installation of ncurses is required as a dependency.
-
+## Build from source
 Clone the repository locally:
 ```
 git clone git@github.com:rory-self/tuitris.git
