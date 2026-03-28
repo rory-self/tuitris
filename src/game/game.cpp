@@ -7,6 +7,9 @@
 #include <variant>
 
 namespace {
+constexpr std::size_t num_unique_tetrominos = 7;
+constexpr std::size_t num_bag_layers = 2;
+
 [[nodiscard]] auto is_taken(const Tile& tile) noexcept -> bool {
   return std::holds_alternative<Taken>(tile);
 }
@@ -23,11 +26,25 @@ auto Game::start() -> const GameSession& {
   return _session.value();
 }
 
-auto Game::get_session() -> GameSession& {
-  return _session.value();
+auto Game::get_session() -> std::optional<std::reference_wrapper<GameSession>> {
+  if (_session.has_value()) {
+    return _session.value();
+  }
+
+  return std::nullopt;
 }
 
 // GameSession //
+auto GameSession::is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool {
+  if (pos.x < 0 or pos.x >= signed_game_width or pos.y < 0 or pos.y >= signed_game_height) {
+    return true;
+  }
+
+  const Tile& tile = get_tile(pos);
+  return is_taken(tile);
+}
+
+
 GameSession::GameSession() {
   for (auto& tile_row : _tile_data) {
     for (Tile& tile : tile_row) {
@@ -35,23 +52,29 @@ GameSession::GameSession() {
     }
   }
 
+  _shape_bag.reserve(num_unique_tetrominos * num_bag_layers);
   refill_bag();
+}
+
+auto GameSession::get_tile(const Coordinates& pos) const -> const Tile& {
+  return _tile_data[pos.y][pos.x];
 }
 
 auto GameSession::get_score() const noexcept -> unsigned int {
   return _score;
 }
 
+auto GameSession::get_next_tetromino_shape() const -> const TileOffsets& {
+  // assume the bag is always filled -> wcgw?
+  return _shape_bag.back().get_offsets();
+}
+
 void GameSession::refill_bag() {
-  constexpr std::size_t num_unique_tetrominos = 7;
-  constexpr std::size_t num_bag_layers = 2;
-  _shape_bag.clear();
-  _shape_bag.reserve(num_unique_tetrominos * num_bag_layers);
+   _shape_bag.clear();
 
   for (std::size_t i = 0; i < num_bag_layers; i++) {
     for (std::size_t j = 0; j < num_unique_tetrominos; j++) {
-      const Tetromino tetromino(static_cast<TetrominoShape>(j));
-      _shape_bag.push_back(tetromino);
+      _shape_bag.emplace_back(static_cast<TetrominoShape>(j));
     }
   }
 
@@ -67,7 +90,7 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
   auto& [tetromino, tetromino_center_pos] = falling_tetromino; 
   const Colour tetromino_colour = tetromino.get_colour();
 
-  const TilePositions old_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
+  const TilePositions old_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
   const bool is_clockwise_rotation = transformation == Transformation::RotateClockwise;
   if (is_clockwise_rotation or transformation == Transformation::RotateAntiClockwise) {
     return try_rotate_tetromino(falling_tetromino, old_tile_positions, is_clockwise_rotation);
@@ -88,9 +111,9 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
   }
 
   const Coordinates new_center_pos = { .x = new_center_x, .y = tetromino_center_pos.y };
-  const TilePositions new_tile_positions = tetromino.get_tile_positions(new_center_pos);
-  for (const auto [x, y] : new_tile_positions) {
-    if (x < 0 or x >= signed_game_width or is_taken(_tile_data[y][x])) {
+  const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
+  for (const Coordinates& pos : new_tile_positions) {
+    if (is_taken_or_out_of_bounds(pos)) {
       return false;
     }
   }
@@ -103,14 +126,9 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
 auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino,
   const TilePositions& curr_tile_positions, const bool clockwise) -> bool {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
-  const auto placement_test = [&grid = _tile_data, &tetromino_center_pos](const TilePositions& new_tile_positions) -> bool {
-    const auto is_invalid_placement = [&grid](const Coordinates& pos) -> bool {
-      auto [x, y] = pos;
-      if (x < 0 or x >= signed_game_width or y < 0 or y >= signed_game_height) {
-        return true;
-      }
-
-      return is_taken(grid[y][x]);
+  const auto placement_test = [this, &tetromino_center_pos](const TilePositions& new_tile_positions) -> bool {
+    const auto& is_invalid_placement = [this](const Coordinates& pos) -> bool {
+      return this->is_taken_or_out_of_bounds(pos);
     };
 
     if (std::ranges::none_of(new_tile_positions, is_invalid_placement)) {
@@ -121,12 +139,12 @@ auto GameSession::try_rotate_tetromino(FallingTetromino& falling_tetromino,
     return false;
   };
 
-  const bool rotated = tetromino.try_rotate({tetromino_center_pos, placement_test, clockwise});
+  const bool rotated = tetromino.try_rotate(tetromino_center_pos, placement_test, clockwise);
   if (not rotated) {
     return false;
   }
 
-  const TilePositions new_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
+  const TilePositions new_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
   update_falling_tiles(tetromino.get_colour(), curr_tile_positions, new_tile_positions);
   return true;
 }
@@ -149,11 +167,11 @@ void GameSession::tick() {
   auto& [tetromino, tetromino_center_pos] = falling_tetromino;
 
   const Coordinates new_center_pos = { .x = tetromino_center_pos.x, .y = tetromino_center_pos.y + 1 };
-  const TilePositions curr_tile_positions = tetromino.get_tile_positions(tetromino_center_pos);
-  const TilePositions new_tile_positions = tetromino.get_tile_positions(new_center_pos);
+  const TilePositions curr_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
+  const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
   const Colour tetromino_colour = tetromino.get_colour();
-  for (const auto [x, y] : new_tile_positions) {
-    if (y >= signed_game_height or is_taken(_tile_data[y][x])) {
+  for (const Coordinates& pos : new_tile_positions) {
+    if (is_taken_or_out_of_bounds(pos)) {
       place_tiles(tetromino_colour, curr_tile_positions);
       return;
     }
@@ -177,14 +195,14 @@ void GameSession::update_falling_tiles(const Colour tetromino_colour,
 }
 
 void GameSession::drop_tetromino() {
-  if (_shape_bag.empty()) {
-    refill_bag();
-  }
-
   constexpr std::size_t drop_height = vanishing_area_height - 6;
   constexpr std::size_t drop_x = game_width / 2;
   _falling_tetromino = {{ std::move(_shape_bag.back()), { drop_x, drop_height }}};
   _shape_bag.pop_back();
+
+  if (_shape_bag.empty()) {
+    refill_bag();
+  }
 }
 
 void GameSession::place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions) {

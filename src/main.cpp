@@ -14,7 +14,7 @@ using Time = std::chrono::time_point<Clock>;
 // Prototypes //
 void init_tui();
 void print_basic_info();
-void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick);
+void game_routine(GameSession& game, const GameWindows& game_win, const Input input, Time& next_tick);
 } // namespace
 
 // Implementation //
@@ -23,15 +23,14 @@ auto main() -> int {
   print_basic_info();
 
   Game game;
-  std::optional<GameWindow> game_win;
+  std::optional<GameWindows> game_win;
 
   Input input = Input::None;
   Time next_tick = Clock::now();
   while (input != Input::Quit) {
     const bool has_started = game.has_started();
-    if (has_started) {
-      GameSession& session = game.get_session();
-      game_routine(session, game_win.value(), input, next_tick);      
+    if (const auto session = game.get_session()) {
+      game_routine(*session, game_win.value(), input, next_tick);      
     } 
 
     input = capture_input(has_started);
@@ -69,7 +68,7 @@ void print_basic_info() {
   refresh();
 }
 
-void game_routine(GameSession& game, const GameWindow& game_win, const Input input, Time& next_tick) {
+void game_routine(GameSession& game, const GameWindows& game_wins, const Input input, Time& next_tick) {
   bool moved = false;
   if (const auto transformation = input_to_transformation(input)) {
     moved = game.try_transformation(*transformation);
@@ -85,7 +84,7 @@ void game_routine(GameSession& game, const GameWindow& game_win, const Input inp
   }
 
   if (ticked or moved) {
-    game_win.update();
+    game_wins.update();
   }
 }
 } // namespace

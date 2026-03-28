@@ -3,22 +3,6 @@
 
 #include <ranges>
 
-namespace {
-  constexpr WallKickMap general_kick_map = {{
-    {{ { 0, 0 }, {  0, 0 }, {  0,  0 }, { 0, 0 }, {  0, 0 } }}, // 0
-    {{ { 0, 0 }, {  1, 0 }, {  1, -1 }, { 0, 2 }, {  1, 2 } }}, // 90
-    {{ { 0, 0 }, {  0, 0 }, {  0,  0 }, { 0, 0 }, {  0, 0 } }}, // 180
-    {{ { 0, 0 }, { -1, 0 }, { -1, -1 }, { 0, 2 }, { -1, 2 } }}, // 270
-  }};
-
-  constexpr WallKickMap i_kick_map = {{
-    {{ {  0, 0 }, { -1, 0 }, {  2, 0 }, { -1,  0 }, {  2,  0 } }}, // 0
-    {{ { -1, 0 }, {  0, 0 }, {  0, 0 }, {  0,  1 }, {  0, -2 } }}, // 90
-    {{ { -1, 1 }, {  1, 1 }, { -2, 1 }, {  1,  0 }, { -2,  0 } }}, // 180
-    {{ {  0, 1 }, {  0, 1 }, {  0, 1 }, {  0, -1 }, {  0,  2 } }}  // 270
-  }};
-}
-
 Tetromino::Tetromino(const TetrominoShape shape) {
     using enum TetrominoShape;
     using enum Colour;
@@ -35,7 +19,7 @@ Tetromino::Tetromino(const TetrominoShape shape) {
         _colour = Blue;
         break;
       case T:
-        _tile_offsets = {{{-1, 0}, {0, 1}, {1, 0}}};
+        _tile_offsets = {{{-1, 0}, {0, -1}, {1, 0}}};
         _kick_map = general_kick_map;
         _colour = Purple;
         break;
@@ -62,7 +46,7 @@ Tetromino::Tetromino(const TetrominoShape shape) {
     }
   }
 
-auto Tetromino::get_next_rotation_pos(const bool clockwise) const noexcept -> RotationalPos {
+auto Tetromino::calc_next_rotation_pos(const bool clockwise) const noexcept -> RotationalPos {
   using enum RotationalPos;
 
   switch (_rotational_pos) {
@@ -83,7 +67,11 @@ auto Tetromino::get_colour() const noexcept -> Colour {
   return _colour;
 }
 
-auto Tetromino::get_tile_positions(const Coordinates& pivot_pos,
+auto Tetromino::get_offsets() const noexcept -> const TileOffsets& {
+  return _tile_offsets;
+}
+
+auto Tetromino::calc_tile_positions(const Coordinates& pivot_pos,
     const TileOffsets& offsets) const -> TilePositions {
   TilePositions tile_positions;
   for (std::size_t i = 0; i < tile_positions.size() - 1; i++) {
@@ -94,11 +82,11 @@ auto Tetromino::get_tile_positions(const Coordinates& pivot_pos,
   return tile_positions;
 }
 
-auto Tetromino::get_tile_positions(const Coordinates& pivot_pos) const -> TilePositions {
-  return get_tile_positions(pivot_pos, _tile_offsets);
+auto Tetromino::calc_tile_positions(const Coordinates& pivot_pos) const -> TilePositions {
+  return calc_tile_positions(pivot_pos, _tile_offsets);
 }
 
-auto Tetromino::get_rotated_offsets(const bool clockwise) const -> TileOffsets {
+auto Tetromino::calc_rotated_offsets(const bool clockwise) const -> TileOffsets {
   TileOffsets rotated_tile_offsets = _tile_offsets;
   for (Coordinates& tile_offset : rotated_tile_offsets) {
     Coordinate& coord_to_flip = clockwise ? tile_offset.y : tile_offset.x;
@@ -110,15 +98,16 @@ auto Tetromino::get_rotated_offsets(const bool clockwise) const -> TileOffsets {
   return rotated_tile_offsets;
 }
 
-auto Tetromino::try_rotate(const RotationParams& params) -> bool {
+auto Tetromino::try_rotate(const Coordinates& pivot_pos,
+    const std::function<bool(TilePositions)>& placement_method,
+    const bool clockwise) -> bool {
   if (not _kick_map.has_value()) {
     return false;
   }
 
-  const auto& [pivot_pos, placement_test, is_clockwise] = params;
-  const RotationalPos next_rotational_pos = get_next_rotation_pos(is_clockwise);
+  const RotationalPos next_rotational_pos = calc_next_rotation_pos(clockwise);
 
-  const TileOffsets new_tile_offsets = get_rotated_offsets(is_clockwise);
+  const TileOffsets new_tile_offsets = calc_rotated_offsets(clockwise);
 
   const WallKickMap& kick_map = _kick_map.value().get();
   const KickOffsets& local_kick_offsets = kick_map[static_cast<std::size_t>(_rotational_pos)];
@@ -128,8 +117,8 @@ auto Tetromino::try_rotate(const RotationParams& params) -> bool {
     const Coordinates kick_translation = local_kick_offset - next_kick_offset;
     const Coordinates new_pivot_pos = pivot_pos + kick_translation;
 
-    const TilePositions new_tile_positions = get_tile_positions(new_pivot_pos, new_tile_offsets);
-    if (placement_test(new_tile_positions)) {
+    const TilePositions new_tile_positions = calc_tile_positions(new_pivot_pos, new_tile_offsets);
+    if (placement_method(new_tile_positions)) {
       _tile_offsets = new_tile_offsets;
       _rotational_pos = next_rotational_pos;
       return true;

@@ -31,23 +31,27 @@ private:
 
   void place_tiles(const Colour tetromino_colour, const TilePositions& falling_tile_positions);
   [[nodiscard]] auto is_overflowing() const -> bool;
+  [[nodiscard]] auto is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool;
   void refill_bag();
   void remove_filled_rows(const std::unordered_set<Coordinate>& y_coords);
   void score_removed_rows(const unsigned int rows_removed);
-  auto try_rotate_tetromino(FallingTetromino& falling_tetromino, const TilePositions& tile_positions, const bool clockwise) -> bool;
+  auto try_rotate_tetromino(FallingTetromino& falling_tetromino,
+      const TilePositions& tile_positions, const bool clockwise) -> bool;
+  void drop_tetromino();
 
 public:
   GameSession();
 
   [[nodiscard]] auto get_score() const noexcept -> unsigned int;
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
+  [[nodiscard]] auto get_tile(const Coordinates& coords) const -> const Tile&;
+  [[nodiscard]] auto get_next_tetromino_shape() const -> const TileOffsets&;
 
   void update_falling_tiles(const Colour tetromino_colour,
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);
   auto try_transformation(const Transformation transformation) -> bool;
   void tick();
-  void drop_tetromino();
 };
 
 class Game {
@@ -55,7 +59,7 @@ private:
   std::optional<GameSession> _session = std::nullopt;
 
 public:
-  [[nodiscard]] auto get_session() -> GameSession&;
+  [[nodiscard]] auto get_session() -> std::optional<std::reference_wrapper<GameSession>>;
   [[nodiscard]] auto has_started() const noexcept -> bool;
   auto start() -> const GameSession&;
 };
