@@ -1,5 +1,5 @@
 # Tuitris
-![](./tuitris.gif)
+![](./docs/tuitris.gif)
 
 ## Dependencies
 A local installation of ncurses is required for rendering. Packages should be available on any package manager.
