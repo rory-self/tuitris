@@ -2,7 +2,7 @@
 #define GAME_WINDOW_HPP
 
 #include "coordinates.hpp"
-#include "game/game.hpp"
+#include "game/game_session.hpp"
 
 #include <ncurses.h>
 #include <memory>

@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
   src/game_window.cpp
   src/inputs.cpp
   src/game/game.cpp
+  src/game/game_session.cpp
   src/game/tetromino.cpp
   src/game/tile.cpp
   src/game/tetromino_bag.cpp
