@@ -4,6 +4,7 @@
 #include "game/tetromino.hpp"
 
 #include <algorithm>
+#include <ranges>
 #include <variant>
 #include <utility>
 
@@ -245,13 +246,13 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
     TileRow& tile_row = _tile_data.at(y_coord);
     TileRow& row_below = _tile_data.at(y_coord + rows_removed);
 
-    for (Coordinate x_coord = 0; x_coord < signed_game_width; x_coord++) {
-      if (std::holds_alternative<Empty>(tile_row.at(x_coord))) {
+    for (auto [tile, tile_below] : std::views::zip(tile_row, row_below)) {
+      if (std::holds_alternative<Empty>(tile)) {
         continue;
       }
 
-      row_below.at(x_coord) = tile_row.at(x_coord);
-      tile_row.at(x_coord) = Empty{};
+      tile_below = tile;
+      tile = Empty{};
     }
   }
 
