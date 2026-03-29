@@ -19,9 +19,8 @@ private:
   const GameSession& _game;
   const TetrominoBag& _bag;
 
-  [[nodiscard]] static auto make_game_window() -> WindowPtr;
-  [[nodiscard]] static auto make_score_window() -> WindowPtr;
-  [[nodiscard]] static auto make_piece_window() -> WindowPtr;
+  [[nodiscard]] static auto make_window(int height, int width, int y_pos, int x_pos) -> WindowPtr;
+  static void move_print(const WindowPtr& window, const Coordinates& pos, std::string_view text);
   static void init_titled_window(const WindowPtr& window, std::string_view title);
   static void print_block(const WindowPtr& window, const Coordinates& pos, Colour colour);
 

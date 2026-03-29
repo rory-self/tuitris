@@ -4,10 +4,21 @@
 #include <ncurses.h>
 #include <ranges>
 
+namespace {
+constexpr std::size_t score_win_width = 20;
+constexpr std::size_t score_win_height = 3;
+constexpr std::size_t piece_win_width = 12;
+constexpr std::size_t piece_win_height = 5;
+}
+
+void GameWindows::move_print(const WindowPtr& window, const Coordinates& pos, const std::string_view text) {
+  mvwprintw(window.get(), pos.y, pos.x, "%s", text.data());
+}
+
 GameWindows::GameWindows(const GameSession& game)
-  : _game_window(make_game_window())
-  , _piece_window(make_piece_window())
-  , _score_window(make_score_window())
+  : _game_window(make_window(game_win_height, game_win_width, (LINES - game_win_height) / 4, (COLS - game_win_width) / 2))
+  , _piece_window(make_window(piece_win_height, piece_win_width, ((LINES - game_win_height) / 2) + 4, ((COLS - game_win_width) / 2) + game_win_width))
+  , _score_window(make_window(score_win_height, score_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2 + game_win_width))
   , _game(game)
   , _bag(_game.get_bag()) {
   draw_border();
@@ -16,28 +27,15 @@ GameWindows::GameWindows(const GameSession& game)
   refresh();
 }
 
-auto GameWindows::make_game_window() -> WindowPtr {
-  WINDOW *const game_win = newwin(game_win_height, game_win_width, (LINES - game_win_height) * 1 / 4, (COLS - game_win_width) / 2);
-  return {game_win, delwin};
+
+auto GameWindows::make_window(const int height, const int width, const int y_pos, const int x_pos) -> WindowPtr {
+  WINDOW *const window = newwin(height, width, y_pos, x_pos);
+  return { window, delwin };
 }
 
-auto GameWindows::make_score_window() -> WindowPtr {
-  constexpr std::size_t score_win_width = 20;
-  constexpr std::size_t score_win_height = 3;
-  WINDOW *const score_win = newwin(score_win_height, score_win_width, (LINES - game_win_height) / 2, (COLS - game_win_width) / 2 + game_win_width);
-  return {score_win, delwin};
-}
-
-auto GameWindows::make_piece_window() -> WindowPtr {
-  constexpr std::size_t piece_win_width = 12;
-  constexpr std::size_t piece_win_height = 5;
-  WINDOW *const piece_win = newwin(piece_win_height, piece_win_width, (LINES - game_win_height) / 2 + 4, (COLS - game_win_width) / 2 + game_win_width);
-  return {piece_win, delwin};
-}
-
-void GameWindows::init_titled_window(const WindowPtr& window, std::string_view title) {
+void GameWindows::init_titled_window(const WindowPtr& window, const std::string_view title) {
   box(window.get(), 0, 0);
-  mvwprintw(window.get(), 0, 1, "%s", title.data());
+  move_print(window, { .x = 1, .y = 0 }, title);
 }
 
 void GameWindows::init_score_window() const {
@@ -46,7 +44,7 @@ void GameWindows::init_score_window() const {
 }
 
 void GameWindows::init_piece_window() const {
-  init_titled_window(_piece_window, "Next:");
+  init_titled_window(_piece_window, "Next");
   update_next_piece();
 }
 
@@ -76,7 +74,8 @@ void GameWindows::draw_border() const {
 }
 
 void GameWindows::update_score() const {
-  mvwprintw(_score_window.get(), 1, 1, "%d", _game.get_score());
+  const std::string score_str = std::to_string(_game.get_score());
+  move_print(_score_window, { .x = 1, .y = 1 }, score_str);
 }
 
 void GameWindows::update_next_piece() const {
@@ -124,7 +123,7 @@ void GameWindows::print_block(const WindowPtr& window, const Coordinates& pos, c
   const chtype ncurses_colour = TUIColours::colour_to_ncurses_pair(colour);
 
   wattron(window.get(), ncurses_colour);
-  mvwprintw(window.get(), pos.y + 1, (pos.x + 1) * 2, "██");
+  move_print(window, { .x = (pos.x + 1) * 2, .y = pos.y + 1 }, "██");
   wattroff(window.get(), ncurses_colour);
 }
 
