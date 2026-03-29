@@ -38,6 +38,7 @@ private:
   auto try_rotate_tetromino(FallingTetromino& falling_tetromino,
       const TilePositions& tile_positions, bool clockwise) -> bool;
   void drop_tetromino();
+  void fall_tiles(int rows_removed, Coordinate bottom_row_removed);
   void update_falling_tiles(Colour tetromino_colour, 
       const TilePositions& old_tile_positions,
       const TilePositions& new_tile_positions);

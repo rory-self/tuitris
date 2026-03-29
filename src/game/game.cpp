@@ -1,6 +1,5 @@
 #include "game/game.hpp"
 
-// Game //
 auto Game::has_started() const noexcept -> bool {
   return _session.has_value();
 }
@@ -18,6 +17,4 @@ auto Game::get_session() -> std::optional<std::reference_wrapper<GameSession>> {
 
   return std::nullopt;
 }
-
-// GameSession //
 

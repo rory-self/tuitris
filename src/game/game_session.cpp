@@ -212,12 +212,14 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
     }
   }
 
-  if (not bottom_row_removed.has_value()) {
-    return;
+  if (bottom_row_removed.has_value()) {
+    fall_tiles(rows_removed, *bottom_row_removed);
+    score_removed_rows(rows_removed);
   }
+}
 
-  // make tiles above fall
-  for (Coordinate y_coord = bottom_row_removed.value() - rows_removed; y_coord >= 0; y_coord--) {
+void GameSession::fall_tiles(const int rows_removed, const Coordinate bottom_row_removed) {
+  for (Coordinate y_coord = bottom_row_removed - rows_removed; y_coord >= 0; y_coord--) {
     TileRow& tile_row = _tile_data.at(y_coord);
     TileRow& row_below = _tile_data.at(y_coord + rows_removed);
 
@@ -230,8 +232,6 @@ void GameSession::remove_filled_rows(const std::unordered_set<Coordinate>& y_coo
       tile = Empty{};
     }
   }
-
-  score_removed_rows(rows_removed); 
 }
 
 void GameSession::score_removed_rows(const unsigned int rows_removed) {
