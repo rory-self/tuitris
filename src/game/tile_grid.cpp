@@ -65,17 +65,18 @@ auto TileGrid::try_remove_filled_rows(const std::unordered_set<Coordinate>& y_co
     return 0;
   }
 
+  const std::size_t rows_removed = std::ranges::count_if(y_coords, row_filled);
   for (const Coordinate filled_y_coord : filled_y_coords) {
     std::ranges::fill((*this)[filled_y_coord], Empty{});
   }
 
-  const std::size_t rows_removed = std::ranges::count_if(y_coords, row_filled);
   fall_tiles(rows_removed, std::ranges::min(filled_y_coords));
   return rows_removed;
 }
 
 void TileGrid::fall_tiles(const std::size_t rows_removed, const Coordinate bottom_row_removed) {
-  for (std::size_t y_coord = bottom_row_removed - rows_removed; y_coord >= 0; y_coord--) {
+  const std::size_t starting_row = bottom_row_removed - rows_removed;
+  for (std::size_t y_coord = starting_row; y_coord <= starting_row; y_coord--) {
     TileRow& tile_row = (*this)[y_coord];
     TileRow& row_below = (*this)[y_coord + rows_removed];
 
