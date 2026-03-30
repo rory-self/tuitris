@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <utility>
 
+GameSession::GameSession(const std::optional<int> seed): _bag(seed) {}
+
 auto GameSession::get_score() const noexcept -> unsigned int {
   return _score;
 }

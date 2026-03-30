@@ -12,13 +12,15 @@ using Clock = std::chrono::steady_clock;
 using Time = std::chrono::time_point<Clock>;
 
 // Prototypes //
+[[nodiscard]] auto read_seed_arg(std::span<const char *const> args) -> std::optional<int>;
 void init_tui();
 void print_basic_info();
 void game_routine(GameSession& game, const GameWindows& game_win, Input input, Time& next_tick);
 } // namespace
 
 // Implementation //
-auto main() -> int {
+auto main(const int argc, const char *const argv[]) -> int {
+  const std::optional<int> seed = read_seed_arg(std::span(argv, argc));
   init_tui();
   print_basic_info();
 
@@ -35,7 +37,7 @@ auto main() -> int {
 
     input = capture_input(has_started);
     if (input == Input::Start and not has_started) {
-      const GameSession& session = game.start();
+      const GameSession& session = game.start(seed);
       game_win.emplace(session);
       input = None;
     } 
@@ -46,6 +48,15 @@ auto main() -> int {
 }
 
 namespace {
+auto read_seed_arg(const std::span<const char *const> args) -> std::optional<int> {
+  if (args.size() <= 1) {
+    return std::nullopt;
+  }
+
+  const std::string seed_arg = *(args.cbegin() + 1);
+  return std::stoi(seed_arg);
+}
+
 void init_tui() {
   setlocale(LC_ALL, ""); // utf-8 support
   initscr();

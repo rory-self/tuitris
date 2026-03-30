@@ -10,7 +10,7 @@ private:
 public:
   [[nodiscard]] auto get_session() -> std::optional<std::reference_wrapper<GameSession>>;
   [[nodiscard]] auto has_started() const noexcept -> bool;
-  auto start() -> const GameSession&;
+  auto start(std::optional<int> seed = std::nullopt) -> const GameSession&;
 };
 
 #endif // GAME_HPP

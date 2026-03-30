@@ -33,6 +33,8 @@ private:
       const TilePositions& new_tile_positions);
 
 public:
+  explicit GameSession(std::optional<int> seed = std::nullopt);
+
   [[nodiscard]] auto get_score() const noexcept -> unsigned int;
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
   [[nodiscard]] auto get_bag() const noexcept -> const TetrominoBag&;

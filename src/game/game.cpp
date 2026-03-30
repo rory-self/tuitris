@@ -4,8 +4,8 @@ auto Game::has_started() const noexcept -> bool {
   return _session.has_value();
 }
 
-auto Game::start() -> const GameSession& {
-  _session.emplace();
+auto Game::start(const std::optional<int> seed) -> const GameSession& {
+  _session.emplace(seed);
 
   return _session.value();
 }

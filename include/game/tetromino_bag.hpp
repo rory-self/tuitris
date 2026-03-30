@@ -11,8 +11,7 @@ private:
   void refill();
 
 public:
-  TetrominoBag();
-  explicit TetrominoBag(const std::mt19937& rng);
+  explicit TetrominoBag(std::optional<int> seed = std::nullopt);
 
   [[nodiscard]] auto get_next_tetromino_offsets() const -> const TileOffsets&;
   [[nodiscard]] auto take() -> Tetromino;
