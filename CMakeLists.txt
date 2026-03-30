@@ -2,40 +2,44 @@ cmake_minimum_required(VERSION 3.30)
 project(tuitris)
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-Wall")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-# ncurses
-find_package(Curses REQUIRED)
-if(Curses_FOUND AND NOT TARGET Curses::Curses)
-  add_library(Curses::Curses INTERFACE IMPORTED)
-  set_target_properties(
-    Curses::Curses
-    PROPERTIES
-      INTERFACE_LINK_LIBRARIES "${CURSES_LIBRARIES}"
-      INTERFACE_INCLUDE_DIRECTORIES "${CURSES_INCLUDE_DIRS}"
-  )
-endif()
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+
+add_library(gamelib
+  src/coordinates.cpp
+  src/game/game_session.cpp
+  src/game/tetromino_bag.cpp
+  src/game/tetromino.cpp
+  src/game/tile_grid.cpp
+  src/game/tile.cpp
+)
+target_include_directories(gamelib PRIVATE ${INCLUDE_DIR})
+target_compile_options(gamelib PRIVATE -Wall)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
   src/tui_colours.cpp
-  src/coordinates.cpp
   src/game_window.cpp
   src/inputs.cpp
   src/game/game.cpp
-  src/game/game_session.cpp
-  src/game/tetromino.cpp
-  src/game/tile_grid.cpp
-  src/game/tile.cpp
-  src/game/tetromino_bag.cpp
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE Curses::Curses)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-# Google Test
+find_package(Curses REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE gamelib ${CURSES_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CURSES_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall)
+
+# Testing
+set(CLEAN_COVERAGE_TARGET coverage-clean)
+add_custom_target(${CLEAN_COVERAGE_TARGET}
+  COMMAND find ${CMAKE_BINARY_DIR} -name "*.gcda" -delete
+  COMMENT "Removing stale coverage data"
+)
+
 enable_testing()
 
 include(FetchContent)
@@ -47,18 +51,20 @@ FetchContent_MakeAvailable(googletest)
 
 include(GoogleTest)
 
-add_executable(
-  ${PROJECT_NAME}_test
+set(TEST_TARGET ${PROJECT_NAME}_test)
+add_executable(${TEST_TARGET}
   test/game_test.cpp
-  src/game/game_session.cpp
-  src/game/tetromino_bag.cpp
-  src/game/tetromino.cpp
-  src/game/tile_grid.cpp
-  src/game/tile.cpp
-  src/coordinates.cpp
+  test/tetromino_test.cpp
 )
-target_link_libraries(${PROJECT_NAME}_test PRIVATE GTest::gtest_main)
-target_include_directories(${PROJECT_NAME}_test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+add_dependencies(${TEST_TARGET} ${CLEAN_COVERAGE_TARGET})
+target_include_directories(${TEST_TARGET} PRIVATE ${INCLUDE_DIR})
+target_link_libraries(${TEST_TARGET} PRIVATE gamelib GTest::gtest_main)
 
-gtest_discover_tests(${PROJECT_NAME}_test)
+option(ENABLE_COVERAGE "Enable coverage flags" OFF)
+if(ENABLE_COVERAGE)
+  target_compile_options(${TEST_TARGET} PRIVATE --coverage -fprofile-arcs -ftest-coverage)
+  target_link_options(${TEST_TARGET} PRIVATE --coverage)
+endif()
+
+gtest_discover_tests(${TEST_TARGET})
 

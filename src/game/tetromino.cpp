@@ -41,7 +41,7 @@ Tetromino::Tetromino(const TetrominoShape shape) {
         _colour = Cyan;
         break;
       case O:
-        _tile_offsets = {{{.x = 0, .y = 1}, {.x = 1, .y = 1}, {.x = 1, .y = 0}}};
+        _tile_offsets = {{{.x = 0, .y = -1}, {.x = 1, .y = -1}, {.x = 1, .y = 0}}};
         _kick_map = std::nullopt;
         _colour = Yellow;
         break;
