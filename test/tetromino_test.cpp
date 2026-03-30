@@ -92,5 +92,39 @@ TEST(TetrominoTest, TSpawnOffsets) {
     { .x =  0, .y = -1 },
     { .x =  1, .y =  0 },
   }};
+  test_offsets_eq(t_tetromino, expected_offsets);
 }
 
+TEST(TetrominoTest, BasicRightRotation) {
+  Tetromino t_tetromino(TetrominoShape::T);
+  constexpr Coordinates dummy_pos = { .x = 2, .y = 2 };
+  const auto& dummy_placement_method = [](const TilePositions& tiles) -> bool {
+    return true;
+  };
+
+  EXPECT_TRUE(t_tetromino.try_rotate(dummy_pos, dummy_placement_method, true));
+
+  const OffsetSet expected_offsets = {{
+    { .x = 0, .y = -1 },
+    { .x = 1, .y =  0 },
+    { .x = 0, .y =  1 },
+  }};
+  test_offsets_eq(t_tetromino, expected_offsets);
+}
+
+TEST(TetrominoTest, BasicLeftRotation) {
+  Tetromino t_tetromino(TetrominoShape::T);
+  constexpr Coordinates dummy_pos = { .x = 2, .y = 2 };
+  const auto& dummy_placement_method = [](const TilePositions& tiles) -> bool {
+    return true;
+  };
+
+  EXPECT_TRUE(t_tetromino.try_rotate(dummy_pos, dummy_placement_method, false));
+
+  const OffsetSet expected_offsets = {{
+    { .x =  0, .y = -1 },
+    { .x = -1, .y =  0 },
+    { .x =  0, .y =  1 },
+  }};
+  test_offsets_eq(t_tetromino, expected_offsets);
+}
