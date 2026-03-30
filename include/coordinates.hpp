@@ -14,6 +14,8 @@ using Coordinate = int;
 struct Coordinates {
   Coordinate x;
   Coordinate y;
+
+  [[nodiscard]] auto operator==(const Coordinates& rhs) const -> bool;
 };
 
 [[nodiscard]] auto operator+(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
