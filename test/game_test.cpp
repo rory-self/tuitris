@@ -40,12 +40,12 @@ private:
   void prepare_triple() {
     prepare_double();
 
-    // Place S
-    left(2);
+    // Place Z
+    right(3);
     drop();
 
     // Place O
-    right(3);
+    left(3);
     drop();
   }
 
@@ -119,12 +119,11 @@ protected:
     prepare_triple();
 
     // Place T
-    right();
     drop();
 
     // Place T
-    flip();
-    left(3);
+    rotate_anticlockwise();
+    right(4);
     drop();
 
     complete_with_left_i();
