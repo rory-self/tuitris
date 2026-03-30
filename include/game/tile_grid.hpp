@@ -14,7 +14,7 @@ private:
   using RawTileGrid = std::array<TileRow, game_height>;
   RawTileGrid _tile_grid;
 
-  void fall_tiles(std::size_t rows_removed, Coordinate bottom_row_removed);
+  void fall_tiles();
 
 public:
   TileGrid();

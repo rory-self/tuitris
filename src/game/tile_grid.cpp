@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <queue>
 
 namespace {
 [[nodiscard]] auto is_taken(const Tile& tile) noexcept -> bool {
@@ -70,23 +71,28 @@ auto TileGrid::try_remove_filled_rows(const std::unordered_set<Coordinate>& y_co
     std::ranges::fill((*this)[filled_y_coord], Empty{});
   }
 
-  fall_tiles(rows_removed, std::ranges::min(filled_y_coords));
+  fall_tiles();
   return rows_removed;
 }
 
-void TileGrid::fall_tiles(const std::size_t rows_removed, const Coordinate bottom_row_removed) {
-  const std::size_t starting_row = bottom_row_removed - rows_removed;
-  for (std::size_t y_coord = starting_row; y_coord <= starting_row; y_coord--) {
-    TileRow& tile_row = (*this)[y_coord];
-    TileRow& row_below = (*this)[y_coord + rows_removed];
+void TileGrid::fall_tiles() {
+  const auto& row_occupied = [](const TileRow& row) -> bool {
+    return std::ranges::any_of(row, is_taken);
+  };
 
-    for (auto [tile, tile_below] : std::views::zip(tile_row, row_below)) {
-      if (std::holds_alternative<Empty>(tile)) {
+  std::queue<std::reference_wrapper<TileRow>> empty_rows;
+  for (TileRow& curr_row : _tile_grid | std::views::reverse) {
+    if (row_occupied(curr_row)) {
+      if (empty_rows.empty()) {
         continue;
       }
 
-      tile_below = tile;
-      tile = Empty{};
+      empty_rows.front().get() = curr_row;
+      empty_rows.pop();
+
+      std::ranges::fill(curr_row, Empty{});
     }
+
+    empty_rows.emplace(curr_row);
   }
 }
