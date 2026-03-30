@@ -2,10 +2,10 @@
 #define GAME_SESSION_HPP
 
 #include "coordinates.hpp"
+#include "transformation.hpp"
 #include "tetromino.hpp"
 #include "tile_grid.hpp"
 #include "tetromino_bag.hpp"
-#include "inputs.hpp"
 
 #include <optional>
 

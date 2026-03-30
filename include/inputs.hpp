@@ -1,6 +1,8 @@
 #ifndef INPUTS_HPP
 #define INPUTS_HPP
 
+#include "transformation.hpp"
+
 #include <optional>
 #include <cstdint>
 
@@ -13,14 +15,6 @@ enum Input : std::uint8_t {
   RotateAntiClockwise = 'q',
   Drop = ' ',
   None,
-};
-
-enum class Transformation : std::uint8_t {
-  Left,
-  Right,
-  RotateClockwise,
-  RotateAntiClockwise,
-  Drop,
 };
 
 [[nodiscard]] auto capture_input(bool game_started) -> Input;

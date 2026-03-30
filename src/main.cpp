@@ -1,4 +1,4 @@
-#include "colours.hpp"
+#include "tui_colours.hpp"
 #include "inputs.hpp"
 #include "game_window.hpp"
 #include "game/game.hpp"

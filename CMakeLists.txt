@@ -19,17 +19,9 @@ if(Curses_FOUND AND NOT TARGET Curses::Curses)
   )
 endif()
 
-# Google Test
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/015950a936fc6b7cadca20eb0dbf6f054e6637fb.zip
-)
-FetchContent_MakeAvailable(googletest)
-
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/colours.cpp
+  src/tui_colours.cpp
   src/coordinates.cpp
   src/game_window.cpp
   src/inputs.cpp
@@ -42,3 +34,31 @@ add_executable(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE Curses::Curses)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+# Google Test
+enable_testing()
+
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/015950a936fc6b7cadca20eb0dbf6f054e6637fb.zip
+)
+FetchContent_MakeAvailable(googletest)
+
+include(GoogleTest)
+
+add_executable(
+  ${PROJECT_NAME}_test
+  test/game_test.cpp
+  src/game/game_session.cpp
+  src/game/tetromino_bag.cpp
+  src/game/tetromino.cpp
+  src/game/tile_grid.cpp
+  src/game/tile.cpp
+  src/coordinates.cpp
+)
+target_link_libraries(${PROJECT_NAME}_test PRIVATE GTest::gtest_main)
+target_include_directories(${PROJECT_NAME}_test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+gtest_discover_tests(${PROJECT_NAME}_test)
+

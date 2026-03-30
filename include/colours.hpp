@@ -1,31 +1,8 @@
 #ifndef COLOURS_HPP
 #define COLOURS_HPP
 
-#include <ncurses.h>
-#include <unordered_map>
-#include <array>
 #include <cstdint>
 
 enum class Colour : std::uint8_t { Cyan, Blue, Orange, Yellow, Green, Purple, Red };
 
-class TUIColours {
-private:
-  static constexpr std::size_t NUM_COLOURS = 7;
-
-  inline static std::unordered_map<Colour, short> _pair_id_by_colour = {};
-  static constexpr std::array<std::pair<Colour, short>, NUM_COLOURS> _colour_mappings = {{
-    { Colour::Cyan, COLOR_CYAN },
-    { Colour::Yellow, COLOR_YELLOW },
-    { Colour::Purple, COLOR_MAGENTA },
-    { Colour::Blue, COLOR_BLUE },
-    { Colour::Green, COLOR_GREEN },
-    { Colour::Red, COLOR_RED },
-    { Colour::Orange, COLOR_WHITE },
-  }};
-
-public:
-  [[nodiscard]] static auto colour_to_ncurses_pair(Colour colour) -> chtype;
-  static void init();
-};
-
-#endif //COLOURS_HPP
+#endif // COLOURS_HPP
