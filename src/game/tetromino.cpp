@@ -26,12 +26,12 @@ Tetromino::Tetromino(const TetrominoShape shape) {
         _colour = Purple;
         break;
       case S:
-        _tile_offsets = {{{.x = -1, .y = 0}, {.x = 0, .y = 1}, {.x = 1, .y = 1}}};
+        _tile_offsets = {{{.x = -1, .y = 0}, {.x = 0, .y = -1}, {.x = 1, .y = -1}}};
         _kick_map = general_kick_map;
         _colour = Green;
         break;
       case Z:
-        _tile_offsets = {{{.x = -1, .y = 1}, {.x = 0, .y = 1}, {.x = 1, .y = 0}}};
+        _tile_offsets = {{{.x = -1, .y = -1}, {.x = 0, .y = -1}, {.x = 1, .y = 0}}};
         _kick_map = general_kick_map;
         _colour = Red;
         break;
