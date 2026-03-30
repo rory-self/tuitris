@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <utility>
 
-GameSession::GameSession(const std::optional<int> seed): _bag(seed) {}
+GameSession::GameSession(const std::optional<int> seed): _bag(seed) {
+  tick();
+}
 
 auto GameSession::get_score() const noexcept -> unsigned int {
   return _score;
@@ -11,6 +13,10 @@ auto GameSession::get_score() const noexcept -> unsigned int {
 
 auto GameSession::get_bag() const noexcept -> const TetrominoBag& {
   return _bag;
+}
+
+auto GameSession::game_over() const noexcept -> bool {
+  return _game_over;
 }
 
 auto GameSession::try_transformation(const Transformation transformation) -> bool {
@@ -29,9 +35,14 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
   }
 
   if (transformation == Transformation::Drop) {
-    while (_falling_tetromino.has_value()) {
+    while (_falling_tetromino.has_value() and not _game_over) {
       tick();
     }
+    
+    if (not _game_over) {
+      drop_tetromino();
+    }
+
     return true;
   }
 
@@ -164,7 +175,7 @@ void GameSession::score_removed_rows(const std::size_t rows_removed) {
       break;
     }
     case 3: {
-      constexpr unsigned int triple_score = 400;
+      constexpr unsigned int triple_score = 300;
       _score += triple_score;
       break;
     }
