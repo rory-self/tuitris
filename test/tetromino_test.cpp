@@ -4,24 +4,30 @@
 #include <unordered_set>
 
 namespace {
+constexpr Coordinates dummy_tetromino_pos = { .x = 2, .y = 2 };
+
 struct CoordinatesHasher {
   [[nodiscard]] auto operator()(const Coordinates& coords) const -> std::size_t {
     return coords.x ^ (coords.y << 1);
   }
 };
-using OffsetSet = std::unordered_set<Coordinates, CoordinatesHasher>;
+using CoordinateSet = std::unordered_set<Coordinates, CoordinatesHasher>;
 
-void test_offsets_eq(const Tetromino& tetromino, const OffsetSet& expected_offsets) {
+void test_offsets_eq(const Tetromino& tetromino, const CoordinateSet& expected_offsets) {
   for (const Coordinates& offset : tetromino.get_offsets()) {
     EXPECT_TRUE(expected_offsets.contains(offset));
   }
+}
+
+[[nodiscard]] auto dummy_placement_method(const TilePositions& tiles) -> bool {
+  return true;
 }
 }
 
 TEST(TetrominoTest, LSpawnOffsets) {
   const Tetromino l_tetromino(TetrominoShape::L);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = -1, .y =  0 },
     { .x =  1, .y =  0 },
     { .x =  1, .y = -1 },
@@ -32,7 +38,7 @@ TEST(TetrominoTest, LSpawnOffsets) {
 TEST(TetrominoTest, OSpawnOffsets) {
   const Tetromino o_tetromino(TetrominoShape::O);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = 0, .y = -1 },
     { .x = 1, .y =  0 },
     { .x = 1, .y = -1 },
@@ -43,7 +49,7 @@ TEST(TetrominoTest, OSpawnOffsets) {
 TEST(TetrominoTest, ISpawnOffsets) {
   const Tetromino i_tetromino(TetrominoShape::I);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = -1, .y = 0 },
     { .x =  1, .y =  0 },
     { .x =  2, .y = 0 },
@@ -54,7 +60,7 @@ TEST(TetrominoTest, ISpawnOffsets) {
 TEST(TetrominoTest, SSpawnOffsets) {
   const Tetromino s_tetromino(TetrominoShape::S);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = -1, .y =  0 },
     { .x =  0, .y = -1 },
     { .x =  1, .y = -1 },
@@ -65,7 +71,7 @@ TEST(TetrominoTest, SSpawnOffsets) {
 TEST(TetrominoTest, ZSpawnOffsets) {
   const Tetromino z_tetromino(TetrominoShape::Z);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = -1, .y = -1 },
     { .x =  0, .y = -1 },
     { .x =  1, .y =  0 },
@@ -76,7 +82,7 @@ TEST(TetrominoTest, ZSpawnOffsets) {
 TEST(TetrominoTest, JSpawnOffsets) {
   const Tetromino j_tetromino(TetrominoShape::J);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = -1, .y =  0 },
     { .x = -1, .y = -1 },
     { .x =  1, .y =  0 },
@@ -87,7 +93,7 @@ TEST(TetrominoTest, JSpawnOffsets) {
 TEST(TetrominoTest, TSpawnOffsets) {
   const Tetromino t_tetromino(TetrominoShape::T);
 
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = -1, .y =  0 },
     { .x =  0, .y = -1 },
     { .x =  1, .y =  0 },
@@ -95,16 +101,27 @@ TEST(TetrominoTest, TSpawnOffsets) {
   test_offsets_eq(t_tetromino, expected_offsets);
 }
 
+TEST(TetrominoTest, GetTilePositions) {
+  const Tetromino t_tetromino(TetrominoShape::T);
+
+  const auto& [dummy_x, dummy_y] = dummy_tetromino_pos;
+  const CoordinateSet expected_positions = {{
+    { .x = dummy_x - 1, .y = dummy_y },
+    { .x = dummy_x + 1, .y = dummy_y },
+    { .x = dummy_x, .y = dummy_y - 1 },
+    dummy_tetromino_pos,
+  }};
+
+  for (const Coordinates& pos : t_tetromino.calc_tile_positions(dummy_tetromino_pos)) {
+    EXPECT_TRUE(expected_positions.contains(pos));
+  }
+}
+
 TEST(TetrominoTest, BasicRightRotation) {
   Tetromino t_tetromino(TetrominoShape::T);
-  constexpr Coordinates dummy_pos = { .x = 2, .y = 2 };
-  const auto& dummy_placement_method = [](const TilePositions& tiles) -> bool {
-    return true;
-  };
+  EXPECT_TRUE(t_tetromino.try_rotate(dummy_tetromino_pos, dummy_placement_method, true));
 
-  EXPECT_TRUE(t_tetromino.try_rotate(dummy_pos, dummy_placement_method, true));
-
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x = 0, .y = -1 },
     { .x = 1, .y =  0 },
     { .x = 0, .y =  1 },
@@ -114,14 +131,9 @@ TEST(TetrominoTest, BasicRightRotation) {
 
 TEST(TetrominoTest, BasicLeftRotation) {
   Tetromino t_tetromino(TetrominoShape::T);
-  constexpr Coordinates dummy_pos = { .x = 2, .y = 2 };
-  const auto& dummy_placement_method = [](const TilePositions& tiles) -> bool {
-    return true;
-  };
+  EXPECT_TRUE(t_tetromino.try_rotate(dummy_tetromino_pos, dummy_placement_method, false));
 
-  EXPECT_TRUE(t_tetromino.try_rotate(dummy_pos, dummy_placement_method, false));
-
-  const OffsetSet expected_offsets = {{
+  const CoordinateSet expected_offsets = {{
     { .x =  0, .y = -1 },
     { .x = -1, .y =  0 },
     { .x =  0, .y =  1 },
