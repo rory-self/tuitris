@@ -7,7 +7,15 @@ constexpr std::size_t num_bag_layers = 2;
 constexpr std::size_t num_unique_tetrominoes = 7;
 };
 
-TetrominoBag::TetrominoBag() {
+TetrominoBag::TetrominoBag(): _rng(std::random_device{}()) {
+  init_bag();
+}
+
+TetrominoBag::TetrominoBag(const std::mt19937& rng): _rng(rng) {
+  init_bag();
+}
+
+void TetrominoBag::init_bag() {
   _bag.reserve(num_bag_layers * num_unique_tetrominoes);
   refill();
 }
