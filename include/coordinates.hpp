@@ -2,6 +2,7 @@
 #define COORDINATES_HPP
 
 #include <cstddef>
+#include <unordered_set>
 
 constexpr std::size_t game_width = 10;
 constexpr std::size_t vanishing_area_height = 10;
@@ -17,6 +18,11 @@ struct Coordinates {
 
   [[nodiscard]] auto operator==(const Coordinates& rhs) const -> bool = default;
 };
+
+struct CoordinatesHasher {
+  [[nodiscard]] auto operator()(const Coordinates& coords) const -> std::size_t;
+};
+using CoordinatesSet = std::unordered_set<Coordinates, CoordinatesHasher>;
 
 [[nodiscard]] auto operator+(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
 [[nodiscard]] auto operator-(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
