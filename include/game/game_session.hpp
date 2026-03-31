@@ -9,11 +9,18 @@
 
 #include <optional>
 
+namespace {
+constexpr std::size_t drop_height = vanishing_area_height - 6;
+constexpr std::size_t drop_x = game_width / 2;
+} // namespace
+
+constexpr Coordinates drop_pos = { .x = drop_x, .y = drop_height };
+
 class GameSession {
 private:
   struct FallingTetromino {
     Tetromino tetromino;
-    Coordinates pivot_pos;
+    Coordinates pivot_pos = drop_pos;
   };    
 
   bool _game_over = false;
@@ -23,14 +30,12 @@ private:
 
   unsigned int _score = 0;
 
-  void place_tiles(Colour tetromino_colour, const TilePositions& falling_tile_positions);
+  void place_tiles(const TilePositions& falling_tile_positions);
   void score_removed_rows(std::size_t rows_removed);
-  auto try_rotate_tetromino(FallingTetromino& falling_tetromino,
-      const TilePositions& tile_positions, bool clockwise) -> bool;
+  auto try_rotate_tetromino(bool clockwise) -> bool;
+  auto try_move_tetromino(bool move_right) -> bool;
   void drop_tetromino();
-  void update_falling_tiles(Colour tetromino_colour, 
-      const TilePositions& old_tile_positions,
-      const TilePositions& new_tile_positions);
+  void update_falling_tiles(const TilePositions& old_positions, const TilePositions& new_positions);
 
 public:
   explicit GameSession(std::optional<int> seed = std::nullopt);
