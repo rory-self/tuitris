@@ -30,6 +30,8 @@ private:
 
   unsigned int _score = 0;
 
+  [[nodiscard]] auto can_not_place(const TilePositions& tile_positions) -> bool;
+
   void place_tiles(const TilePositions& falling_tile_positions);
   void score_removed_rows(std::size_t rows_removed);
   auto try_rotate_tetromino(bool clockwise) -> bool;

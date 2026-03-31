@@ -24,6 +24,11 @@ auto GameSession::game_over() const noexcept -> bool {
   return _game_over;
 }
 
+auto GameSession::can_not_place(const TilePositions& tile_positions) -> bool {
+  const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, _tile_data);
+  return std::ranges::any_of(tile_positions, is_invalid_placement);
+}
+
 auto GameSession::try_transformation(const Transformation transformation) -> bool {
   if (not _falling_tetromino.has_value()) {
     return false;
@@ -62,8 +67,7 @@ auto GameSession::try_move_tetromino(const bool move_right) -> bool {
   const Coordinates new_center_pos = { .x = new_center_x, .y = tetromino_center_pos.y };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
-  const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, _tile_data);
-  if (std::ranges::any_of(new_tile_positions, is_invalid_placement)) {
+  if (can_not_place(new_tile_positions)) {
     return false;
   }
 
@@ -110,8 +114,7 @@ void GameSession::tick() {
   const Coordinates new_center_pos = { .x = tetromino_center_pos.x, .y = tetromino_center_pos.y + 1 };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
-  const auto& taken_or_out_of_bounds = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, _tile_data);
-  if (std::ranges::any_of(new_tile_positions, taken_or_out_of_bounds)) {
+  if (can_not_place(new_tile_positions)) {
     place_tiles(curr_tile_positions);
     return;
   }
