@@ -31,6 +31,7 @@ public:
   [[nodiscard]] auto end() const -> RawTileGrid::const_iterator;
 
   [[nodiscard]] auto try_remove_filled_rows(const std::unordered_set<Coordinate>& filled_row_y_coords) -> std::size_t;
+  void move(const TilePositions& old_positions, const TilePositions& new_positions);
 };
 
 #endif // TILE_GRID_HPP

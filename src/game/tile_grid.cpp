@@ -1,8 +1,10 @@
 #include "game/tile_grid.hpp"
+#include "coordinates.hpp"
 
 #include <algorithm>
 #include <ranges>
 #include <queue>
+#include <cassert>
 
 namespace {
 [[nodiscard]] auto is_taken(const Tile& tile) noexcept -> bool {
@@ -73,6 +75,21 @@ auto TileGrid::try_remove_filled_rows(const std::unordered_set<Coordinate>& y_co
 
   fall_tiles();
   return rows_removed;
+}
+
+void TileGrid::move(const TilePositions& old_positions, const TilePositions& new_positions) {
+  std::array<Tile, tiles_in_tetromino> cached_tiles;
+
+  for (const auto& [index, pos] : std::ranges::views::enumerate(old_positions)) {
+    Tile& tile = (*this)[pos];
+    cached_tiles.at(index) = tile;
+
+    tile = Empty{};
+  }
+
+  for (const auto& [pos, tile] : std::ranges::views::zip(new_positions, cached_tiles)) {
+    (*this)[pos] = tile;
+  }
 }
 
 void TileGrid::fall_tiles() {

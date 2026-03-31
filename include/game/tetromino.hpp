@@ -8,7 +8,6 @@
 #include <functional>
 #include <optional>
 
-using TilePositions = std::array<Coordinates, 4>;
 using TileOffsets = std::array<Coordinates, 3>;
 
 enum class TetrominoShape : std::uint8_t { L, J, S, Z, T, I, O };

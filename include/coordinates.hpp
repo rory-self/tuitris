@@ -19,7 +19,8 @@ struct Coordinates {
   [[nodiscard]] auto operator==(const Coordinates& rhs) const -> bool = default;
 };
 
-using TilePositions = std::array<Coordinates, 4>;
+constexpr std::size_t tiles_in_tetromino = 4;
+using TilePositions = std::array<Coordinates, tiles_in_tetromino>;
 
 [[nodiscard]] auto operator+(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
 [[nodiscard]] auto operator-(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;

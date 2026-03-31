@@ -117,7 +117,7 @@ auto Tetromino::try_rotate(const Coordinates& pivot_pos,
   const KickOffsets& local_kick_offsets = kick_map.at(static_cast<std::size_t>(_rotational_pos));
   const KickOffsets& next_kick_offsets = kick_map.at(static_cast<std::size_t>(next_rotational_pos));
 
-  const auto& try_kicks = [&](const auto& offset_pair) -> bool {
+  const auto& try_kick = [&](const auto& offset_pair) -> bool {
     const auto& [local_kick_offset, next_kick_offset] = offset_pair;
     const Coordinates kick_translation = local_kick_offset - next_kick_offset;
     const Coordinates new_pivot_pos = pivot_pos + kick_translation;
@@ -131,6 +131,6 @@ auto Tetromino::try_rotate(const Coordinates& pivot_pos,
     return false;
   };
 
-  return std::ranges::any_of(std::views::zip(local_kick_offsets, next_kick_offsets), try_kicks);
+  return std::ranges::any_of(std::views::zip(local_kick_offsets, next_kick_offsets), try_kick);
 }
 

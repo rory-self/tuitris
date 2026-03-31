@@ -37,7 +37,6 @@ private:
   auto try_rotate_tetromino(bool clockwise) -> bool;
   auto try_move_tetromino(bool move_right) -> bool;
   void drop_tetromino();
-  void update_falling_tiles(const TilePositions& old_positions, const TilePositions& new_positions);
 
 public:
   explicit GameSession(std::optional<int> seed = std::nullopt);
