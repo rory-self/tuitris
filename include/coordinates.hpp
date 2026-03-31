@@ -2,7 +2,7 @@
 #define COORDINATES_HPP
 
 #include <cstddef>
-#include <set>
+#include <array>
 
 constexpr std::size_t game_width = 10;
 constexpr std::size_t vanishing_area_height = 10;
@@ -19,12 +19,7 @@ struct Coordinates {
   [[nodiscard]] auto operator==(const Coordinates& rhs) const -> bool = default;
 };
 
-namespace {
-struct CoordinatesHasher {
-  [[nodiscard]] auto operator()(const Coordinates& coords) const -> std::size_t;
-};
-}
-using CoordinatesSet = std::set<Coordinates, CoordinatesHasher>;
+using TilePositions = std::array<Coordinates, 4>;
 
 [[nodiscard]] auto operator+(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
 [[nodiscard]] auto operator-(const Coordinates& lhs, const Coordinates& rhs) -> Coordinates;
