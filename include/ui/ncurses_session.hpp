@@ -1,6 +1,6 @@
 class NCursesSession {
 private:
-  explicit NCursesSession();
+  NCursesSession();
 
 public:
   ~NCursesSession();

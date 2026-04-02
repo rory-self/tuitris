@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
   src/ui/tui_colours.cpp
   src/ui/game_window.cpp
   src/ui/ncurses_session.cpp
+  src/ui/window.cpp
   src/inputs.cpp
   src/game/game.cpp
 )

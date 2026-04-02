@@ -3,6 +3,7 @@
 
 #include "coordinates.hpp"
 #include "game/game_session.hpp"
+#include "ui/window.hpp"
 
 #include <ncurses.h>
 #include <memory>
@@ -13,16 +14,11 @@ private:
   static constexpr int game_win_width = (signed_game_width + 2) * 2;
   using WindowPtr = std::unique_ptr<WINDOW, decltype(&delwin)>;
 
-  const WindowPtr _game_window;
-  const WindowPtr _piece_window;
-  const WindowPtr _score_window;
+  const Window _game_window;
+  const Window _piece_window;
+  const Window _score_window;
   const GameSession& _game;
   const TetrominoBag& _bag;
-
-  [[nodiscard]] static auto make_window(int height, int width, int y_pos, int x_pos) -> WindowPtr;
-  static void move_print(const WindowPtr& window, const Coordinates& pos, std::string_view text);
-  static void init_titled_window(const WindowPtr& window, std::string_view title);
-  static void print_block(const WindowPtr& window, const Coordinates& pos, Colour colour);
 
   void clear() const;
   void draw_border() const;
