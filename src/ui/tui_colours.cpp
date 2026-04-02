@@ -1,4 +1,4 @@
-#include "tui_colours.hpp"
+#include "ui/tui_colours.hpp"
 
 void TUIColours::init() {
   if (not has_colors()) {

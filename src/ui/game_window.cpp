@@ -1,5 +1,5 @@
-#include "game_window.hpp"
-#include "tui_colours.hpp"
+#include "ui/game_window.hpp"
+#include "ui/tui_colours.hpp"
 #include "coordinates.hpp"
 
 #include <ncurses.h>

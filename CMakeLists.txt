@@ -21,8 +21,9 @@ target_compile_options(gamelib PRIVATE -Wall)
 
 add_executable(${PROJECT_NAME}
   src/main.cpp
-  src/tui_colours.cpp
-  src/game_window.cpp
+  src/ui/tui_colours.cpp
+  src/ui/game_window.cpp
+  src/ui/ncurses_session.cpp
   src/inputs.cpp
   src/game/game.cpp
 )

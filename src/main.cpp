@@ -1,13 +1,12 @@
 #include "game/game_session.hpp"
-#include "tui_colours.hpp"
 #include "inputs.hpp"
-#include "game_window.hpp"
+#include "ui/ncurses_session.hpp"
+#include "ui/game_window.hpp"
 #include "game/game.hpp"
 
 #include <ncurses.h>
 #include <chrono>
 #include <functional>
-#include <csignal>
 
 namespace {
 using Clock = std::chrono::steady_clock;
@@ -15,16 +14,13 @@ using Time = std::chrono::time_point<Clock>;
 
 // Prototypes //
 [[nodiscard]] auto read_seed_arg(std::span<const char *const> args) -> std::optional<int>;
-void init_tui();
-void print_basic_info();
 void game_routine(GameSession& game, const GameWindows& game_win, Input input, Time& next_tick);
 } // namespace
 
 // Implementation //
 auto main(const int argc, const char *const argv[]) -> int {
-  const std::optional<int> seed = read_seed_arg(std::span(argv, argc));
-  init_tui();
-  print_basic_info();
+  const std::optional<int> seed = read_seed_arg(std::span(argv, argc)); 
+  NCursesSession::init();
 
   Game game;
   std::optional<GameWindows> game_win;
@@ -44,9 +40,6 @@ auto main(const int argc, const char *const argv[]) -> int {
       input = None;
     } 
   }
-
-  endwin();
-  return 0;
 }
 
 namespace {
@@ -59,34 +52,13 @@ auto read_seed_arg(const std::span<const char *const> args) -> std::optional<int
   return std::stoi(seed_arg);
 }
 
-void init_tui() {
-  setlocale(LC_ALL, ""); // utf-8 support
-  initscr();
-  curs_set(0); // hide cursor
-  cbreak();
-  noecho(); 
-  TUIColours::init();
-  keypad(stdscr, true);
-
-  std::signal(SIGINT, [](int) -> void {
-      endwin();
-      std::exit(0);
-  });
-}
-
-void print_basic_info() {
-  mvprintw(LINES * 19 / 20, COLS / 8, "Quit (x)");
-  mvprintw(LINES / 2, COLS / 2, "'s' to start");
-  refresh();
-}
-
 void game_routine(GameSession& game, const GameWindows& game_wins, const Input input, Time& next_tick) {
   const auto transformation_res = std::invoke([&game, input] -> TransformationRes {
     const auto transformation = input_to_transformation(input);
     return transformation ? game.try_transformation(*transformation) : TransformationRes::Fail;
   });
 
-  bool ticked = Clock::now() >= next_tick;
+  const bool ticked = Clock::now() >= next_tick;
   if (ticked) {
     game.tick();
   }
