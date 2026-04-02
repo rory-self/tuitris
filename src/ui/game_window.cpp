@@ -20,12 +20,9 @@ GameWindows::GameWindows(const GameSession& game)
   , _bag(game.get_bag()) {
   draw_border();
 
-  _score_window.init_titled("Score");
-  update_score();
-
-  _level_window.init_titled("Level");
-  update_level();
-
+  init_score_window();
+  init_piece_window();
+  init_level_window();
   refresh();
 }
 
