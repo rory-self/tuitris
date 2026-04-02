@@ -77,6 +77,26 @@ auto TileGrid::try_remove_filled_rows(const std::unordered_set<Coordinate>& y_co
   return rows_removed;
 }
 
+void TileGrid::drop(const TilePositions& positions, const Colour colour) {
+  for (const Coordinates& pos : positions) {
+    (*this)[pos] = Falling(colour);
+  }
+}
+
+auto TileGrid::place(const TilePositions& positions) -> std::size_t{
+  std::unordered_set<Coordinate> y_coords;
+  for (const Coordinates& pos : positions) {
+    Tile& tile = (*this)[pos];
+
+    assert(std::holds_alternative<Falling>(tile) and "Attempted to place non-falling tile");
+
+    tile = Taken(std::get<Falling>(tile));
+    y_coords.emplace(pos.y);
+  }
+
+  return try_remove_filled_rows(y_coords);
+}
+
 void TileGrid::move(const TilePositions& old_positions, const TilePositions& new_positions) {
   std::array<Tile, tiles_in_tetromino> cached_tiles;
 

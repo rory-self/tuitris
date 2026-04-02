@@ -6,6 +6,6 @@ auto OccupiedTile::get_colour() const noexcept -> Colour {
   return _colour;
 }
 
-Taken::Taken(const Colour colour) : OccupiedTile(colour) {}
+Taken::Taken(const Falling& falling_tile) : OccupiedTile(falling_tile.get_colour()) {}
 Falling::Falling(const Colour colour) : OccupiedTile(colour) {}
 

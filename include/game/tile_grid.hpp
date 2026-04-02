@@ -14,15 +14,17 @@ private:
   using RawTileGrid = std::array<TileRow, game_height>;
   RawTileGrid _tile_grid;
 
+  [[nodiscard]] auto operator[](const Coordinates& pos) -> Tile&;
+  [[nodiscard]] auto operator[](std::size_t y_coord) -> TileRow&;
+
   void fall_tiles();
+  [[nodiscard]] auto try_remove_filled_rows(const std::unordered_set<Coordinate>& filled_row_y_coords) -> std::size_t;
 
 public:
   TileGrid();
 
   [[nodiscard]] auto operator[](const Coordinates& pos) const -> const Tile&;
-  [[nodiscard]] auto operator[](const Coordinates& pos) -> Tile&;
   [[nodiscard]] auto operator[](std::size_t y_coord) const -> const TileRow&;
-  [[nodiscard]] auto operator[](std::size_t y_coord) -> TileRow&;
 
   [[nodiscard]] auto is_overflowing() const -> bool;
   [[nodiscard]] auto is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool;
@@ -30,7 +32,8 @@ public:
   [[nodiscard]] auto begin() const -> RawTileGrid::const_iterator;
   [[nodiscard]] auto end() const -> RawTileGrid::const_iterator;
 
-  [[nodiscard]] auto try_remove_filled_rows(const std::unordered_set<Coordinate>& filled_row_y_coords) -> std::size_t;
+  void drop(const TilePositions& positions, Colour colour);
+  [[nodiscard]] auto place(const TilePositions& positions) -> std::size_t;
   void move(const TilePositions& old_positions, const TilePositions& new_positions);
 };
 

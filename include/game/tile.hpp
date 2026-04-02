@@ -16,14 +16,14 @@ public:
   [[nodiscard]] auto get_colour() const noexcept -> Colour;
 };
 
-class Taken : public OccupiedTile {
-public:
-  Taken(Colour colour);
-};
-
 class Falling : public OccupiedTile{
 public:
-  Falling(Colour colour);
+  explicit Falling(Colour colour);
+};
+
+class Taken : public OccupiedTile {
+public:
+  explicit Taken(const Falling& falling);
 };
 
 struct Empty {};

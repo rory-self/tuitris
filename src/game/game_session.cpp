@@ -42,7 +42,7 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
     case Left:
     case Right:
       return try_move_tetromino(transformation == Right);
-    case Drop:
+    case Drop: {
       while (_falling_tetromino.has_value() and not _game_over) {
         tick();
       }
@@ -51,32 +51,27 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
         drop_tetromino();
       }
       return true;
+    }
     default:
       std::unreachable();
   }
 }
 
 auto GameSession::try_move_tetromino(const bool move_right) -> bool {
-  auto& [tetromino, tetromino_center_pos] = _falling_tetromino.value();
+  auto& [tetromino, center_pos] = _falling_tetromino.value();
 
-  int new_center_x = tetromino_center_pos.x;
-  if (move_right) {
-    new_center_x++;
-  } else {
-    new_center_x--;
-  }
-
-  const Coordinates new_center_pos = { .x = new_center_x, .y = tetromino_center_pos.y };
+  const int new_center_x = move_right ? center_pos.x + 1 : center_pos.x - 1;
+  const Coordinates new_center_pos = { .x = new_center_x, .y = center_pos.y };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
   if (can_not_place(new_tile_positions)) {
     return false;
   }
 
-  const TilePositions curr_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
+  const TilePositions curr_tile_positions = tetromino.calc_tile_positions(center_pos);
   _tile_data.move(curr_tile_positions, new_tile_positions);
 
-  tetromino_center_pos = new_center_pos;
+  center_pos = new_center_pos;
   return true;
 
 }
@@ -130,24 +125,13 @@ void GameSession::drop_tetromino() {
 
   const Tetromino& tetromino = _falling_tetromino->tetromino;
   const TilePositions tetromino_positions = tetromino.calc_tile_positions(drop_pos);
-  const Colour colour = tetromino.get_colour();
-  for (const Coordinates& pos : tetromino_positions) {
-    _tile_data[pos] = Falling(colour);
-  }
+  _tile_data.drop(tetromino_positions, tetromino.get_colour());
 }
 
 void GameSession::place_tiles(const TilePositions& falling_tile_positions) {
-  const Colour colour = _falling_tetromino->tetromino.get_colour();
+    _falling_tetromino = std::nullopt;
 
-  std::unordered_set<Coordinate> y_coords;
-  for (const Coordinates& pos : falling_tile_positions) {
-    _tile_data[pos] = Taken(colour);
-
-    y_coords.emplace(pos.y);
-  }
-  _falling_tetromino = std::nullopt;
-
-  if (const std::size_t rows_removed = _tile_data.try_remove_filled_rows(y_coords); rows_removed > 0) {
+  if (const std::size_t rows_removed = _tile_data.place(falling_tile_positions); rows_removed > 0) {
     score_removed_rows(rows_removed);
   }
 
