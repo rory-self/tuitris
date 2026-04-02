@@ -13,8 +13,9 @@ constexpr std::size_t piece_win_height = 5;
 
 GameWindows::GameWindows(const GameSession& game)
   : _game_window(game_win_height, game_win_width, (LINES - game_win_height) / 4, (COLS - game_win_width) / 2)
-  , _piece_window(piece_win_height, piece_win_width, ((LINES - game_win_height) / 2) + 4, ((COLS - game_win_width) / 2) + game_win_width)
+  , _piece_window(piece_win_height, piece_win_width, ((LINES - game_win_height) / 2) + 8, ((COLS - game_win_width) / 2) + game_win_width)
   , _score_window(score_win_height, score_win_width, (LINES - game_win_height) / 2, ((COLS - game_win_width) / 2) + game_win_width)
+  , _level_window(score_win_height, score_win_width, ((LINES - game_win_height) / 2) + 4, ((COLS - game_win_width) / 2) + game_win_width)
   , _game(game)
   , _bag(game.get_bag()) {
   draw_border();
@@ -26,6 +27,9 @@ GameWindows::GameWindows(const GameSession& game)
 void GameWindows::init_score_window() const {
   _score_window.init_titled("Score");
   update_score();
+
+  _level_window.init_titled("Level");
+  update_level();
 }
 
 void GameWindows::init_piece_window() const {
@@ -54,6 +58,11 @@ void GameWindows::draw_border() const {
 void GameWindows::update_score() const {
   const std::string score_str = std::to_string(_game.get_score());
   _score_window.move_print({ .x = 1, .y = 1 }, score_str);
+}
+
+void GameWindows::update_level() const {
+  const std::string level_str = std::to_string(_game.get_level());
+  _level_window.move_print({ .x = 1, .y = 1}, level_str);
 }
 
 void GameWindows::update_next_piece() const {
@@ -88,6 +97,7 @@ void GameWindows::update() const {
 
   update_next_piece();
   update_score();
+  update_level();
   refresh();
 }
 
@@ -95,5 +105,6 @@ void GameWindows::refresh() const {
   _game_window.refresh();
   _piece_window.refresh();
   _score_window.refresh();
+  _level_window.refresh();
 }
 

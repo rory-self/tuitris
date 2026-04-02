@@ -17,6 +17,7 @@ private:
   const Window _game_window;
   const Window _piece_window;
   const Window _score_window;
+  const Window _level_window;
   const GameSession& _game;
   const TetrominoBag& _bag;
 
@@ -26,6 +27,7 @@ private:
   void init_piece_window() const;
   void refresh() const;
   void update_score() const;
+  void update_level() const;
   void update_next_piece() const;
 
 public:

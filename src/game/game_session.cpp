@@ -12,6 +12,10 @@ auto GameSession::get_score() const noexcept -> unsigned int {
   return _score;
 }
 
+auto GameSession::get_level() const noexcept -> unsigned int {
+  return _level;
+}
+
 auto GameSession::get_bag() const noexcept -> const TetrominoBag& {
   return _bag;
 }
@@ -169,6 +173,11 @@ void GameSession::score_removed_rows(const std::size_t rows_removed) {
     }
     default:
       std::unreachable();
+  }
+
+  constexpr unsigned int level_threshold_multiplier = 100;
+  if (_score >= level_threshold_multiplier * _level) {
+    _level++;
   }
 }
 
