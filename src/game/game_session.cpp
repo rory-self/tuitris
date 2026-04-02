@@ -5,7 +5,7 @@
 #include <utility>
 
 GameSession::GameSession(const std::optional<int> seed): _bag(seed) {
-  drop_tetromino();
+  drop_new_tetromino();
 }
 
 auto GameSession::get_score() const noexcept -> unsigned int {
@@ -24,11 +24,6 @@ auto GameSession::game_over() const noexcept -> bool {
   return _game_over;
 }
 
-auto GameSession::can_not_place(const TilePositions& tile_positions) -> bool {
-  const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, _tile_data);
-  return std::ranges::any_of(tile_positions, is_invalid_placement);
-}
-
 auto GameSession::try_transformation(const Transformation transformation) -> bool {
   if (not _falling_tetromino.has_value()) {
     return false;
@@ -42,19 +37,26 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
     case Left:
     case Right:
       return try_move_tetromino(transformation == Right);
-    case Drop: {
-      while (_falling_tetromino.has_value() and not _game_over) {
-        tick();
-      }
-      
-      if (not _game_over) {
-        drop_tetromino();
-      }
-      return true;
-    }
+    case Drop:
+      return drop_tetromino();
     default:
       std::unreachable();
   }
+}
+
+auto GameSession::drop_tetromino() -> bool {
+  if (not _falling_tetromino.has_value()) {
+    return false;
+  }
+
+  while (_falling_tetromino.has_value() and not _game_over) {
+    tick();
+  }
+  
+  if (not _game_over) {
+    drop_new_tetromino();
+  }
+  return true;
 }
 
 auto GameSession::try_move_tetromino(const bool move_right) -> bool {
@@ -64,7 +66,7 @@ auto GameSession::try_move_tetromino(const bool move_right) -> bool {
   const Coordinates new_center_pos = { .x = new_center_x, .y = center_pos.y };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
-  if (can_not_place(new_tile_positions)) {
+  if (_tile_data.can_not_place(new_tile_positions)) {
     return false;
   }
 
@@ -100,7 +102,7 @@ void GameSession::tick() {
   }
 
   if (not _falling_tetromino.has_value()) {
-    drop_tetromino();
+    drop_new_tetromino();
     return;
   }
 
@@ -111,7 +113,7 @@ void GameSession::tick() {
   const Coordinates new_center_pos = { .x = tetromino_center_pos.x, .y = tetromino_center_pos.y + 1 };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
-  if (can_not_place(new_tile_positions)) {
+  if (_tile_data.can_not_place(new_tile_positions)) {
     place_tiles(curr_tile_positions);
     return;
   }
@@ -120,7 +122,7 @@ void GameSession::tick() {
   tetromino_center_pos = new_center_pos;
 }
 
-void GameSession::drop_tetromino() {
+void GameSession::drop_new_tetromino() {
   _falling_tetromino = {{ .tetromino = _bag.take() }};
 
   const Tetromino& tetromino = _falling_tetromino->tetromino;
@@ -129,7 +131,7 @@ void GameSession::drop_tetromino() {
 }
 
 void GameSession::place_tiles(const TilePositions& falling_tile_positions) {
-    _falling_tetromino = std::nullopt;
+  _falling_tetromino = std::nullopt;
 
   if (const std::size_t rows_removed = _tile_data.place(falling_tile_positions); rows_removed > 0) {
     score_removed_rows(rows_removed);

@@ -5,6 +5,7 @@
 #include <ranges>
 #include <queue>
 #include <cassert>
+#include <functional>
 
 namespace {
 [[nodiscard]] auto is_taken(const Tile& tile) noexcept -> bool {
@@ -42,6 +43,11 @@ auto TileGrid::begin() const -> RawTileGrid::const_iterator {
 
 auto TileGrid::end() const -> RawTileGrid::const_iterator {
   return _tile_grid.cend();
+}
+
+auto TileGrid::can_not_place(const TilePositions& tile_positions) const -> bool {
+  const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, this);
+  return std::ranges::any_of(tile_positions, is_invalid_placement);
 }
 
 auto TileGrid::is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool {
