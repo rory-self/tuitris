@@ -25,6 +25,7 @@ private:
   void draw_border() const;
   void init_score_window() const;
   void init_piece_window() const;
+  void init_level_window() const;
   void refresh() const;
   void update_score() const;
   void update_level() const;

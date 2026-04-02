@@ -29,6 +29,21 @@ GameWindows::GameWindows(const GameSession& game)
   refresh();
 }
 
+void GameWindows::init_score_window() const {
+  _score_window.init_titled("Score");
+  update_score();
+}
+
+void GameWindows::init_piece_window() const {
+  _piece_window.init_titled("Next");
+  update_next_piece();
+}
+
+void GameWindows::init_level_window() const {
+  _level_window.init_titled("Level");
+  update_level();
+}
+
 void GameWindows::clear() const {
   _game_window.erase();
   _score_window.erase();
