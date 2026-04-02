@@ -141,7 +141,7 @@ void GameSession::place_tiles(const TilePositions& falling_tile_positions) {
   _falling_tetromino = std::nullopt;
 
   if (const std::size_t rows_removed = _tile_data.place(falling_tile_positions); rows_removed > 0) {
-    score_removed_rows(rows_removed);
+    calc_score_increase(rows_removed);
   }
 
   if (_tile_data.is_overflowing()) {
@@ -149,35 +149,38 @@ void GameSession::place_tiles(const TilePositions& falling_tile_positions) {
   }
 }
 
-void GameSession::score_removed_rows(const std::size_t rows_removed) {
+void GameSession::calc_score_increase(const std::size_t rows_removed) {
+  const unsigned int score_diff = score_removed_rows(rows_removed);
+  _score += score_diff;
+  _curr_level_score += score_diff;
+  
+  constexpr unsigned int level_threshold_multiplier = 100;
+  if (_curr_level_score >= level_threshold_multiplier * _level) {
+    _curr_level_score = 0;
+    _level++;
+  }
+}
+
+auto GameSession::score_removed_rows(const std::size_t rows_removed) const -> unsigned int {
   switch (rows_removed) {
     case 1: {
       constexpr unsigned int single_score = 40;
-      _score += single_score;
-      break;
+      return single_score;
     }
     case 2: {
       constexpr unsigned int double_score = 100;
-      _score += double_score;
-      break;
+      return double_score;
     }
     case 3: {
       constexpr unsigned int triple_score = 300;
-      _score += triple_score;
-      break;
+      return triple_score;
     }
     case 4: {
       constexpr unsigned int tetris_score = 1200;
-      _score += tetris_score;
-      break;
+      return tetris_score;
     }
     default:
       std::unreachable();
-  }
-
-  constexpr unsigned int level_threshold_multiplier = 100;
-  if (_score >= level_threshold_multiplier * _level) {
-    _level++;
   }
 }
 

@@ -10,8 +10,8 @@
 #include <optional>
 
 namespace {
-const constinit std::size_t drop_height = vanishing_area_height - 6;
-const constinit std::size_t drop_x = game_width / 2;
+constexpr std::size_t drop_height = vanishing_area_height - 6;
+constexpr std::size_t drop_x = game_width / 2;
 } // namespace
 
 constexpr Coordinates drop_pos = { .x = drop_x, .y = drop_height };
@@ -30,10 +30,13 @@ private:
   TetrominoBag _bag;
   std::optional<FallingTetromino> _falling_tetromino;
   unsigned int _score = 0;
+  unsigned int _curr_level_score = 0;
   unsigned int _level = 1;
 
+  void calc_score_increase(std::size_t rows_removed);
+  [[nodiscard]] auto score_removed_rows(std::size_t rows_removed) const -> unsigned int;
+
   void place_tiles(const TilePositions& falling_tile_positions);
-  void score_removed_rows(std::size_t rows_removed);
   auto try_rotate_tetromino(bool clockwise) -> TransformationRes;
   auto try_move_tetromino(bool move_right) -> TransformationRes;
   auto hard_drop_tetromino() -> TransformationRes;

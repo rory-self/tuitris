@@ -19,28 +19,21 @@ GameWindows::GameWindows(const GameSession& game)
   , _game(game)
   , _bag(game.get_bag()) {
   draw_border();
-  init_score_window();
-  init_piece_window();
-  refresh();
-}
 
-void GameWindows::init_score_window() const {
   _score_window.init_titled("Score");
   update_score();
 
   _level_window.init_titled("Level");
   update_level();
-}
 
-void GameWindows::init_piece_window() const {
-  _piece_window.init_titled("Next");
-  update_next_piece();
+  refresh();
 }
 
 void GameWindows::clear() const {
   _game_window.erase();
   _score_window.erase();
   _piece_window.erase();
+
   draw_border();
   init_score_window();
   init_piece_window();
