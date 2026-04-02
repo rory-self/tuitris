@@ -16,6 +16,8 @@ constexpr std::size_t drop_x = game_width / 2;
 
 constexpr Coordinates drop_pos = { .x = drop_x, .y = drop_height };
 
+enum class TransformationRes : std::uint8_t { Fail, Success, ResetTick };
+
 class GameSession {
 private:
   struct FallingTetromino {
@@ -32,10 +34,11 @@ private:
 
   void place_tiles(const TilePositions& falling_tile_positions);
   void score_removed_rows(std::size_t rows_removed);
-  auto try_rotate_tetromino(bool clockwise) -> bool;
-  auto try_move_tetromino(bool move_right) -> bool;
+  auto try_rotate_tetromino(bool clockwise) -> TransformationRes;
+  auto try_move_tetromino(bool move_right) -> TransformationRes;
+  auto hard_drop_tetromino() -> TransformationRes;
+  auto soft_drop_tetromino() -> TransformationRes;
   void drop_new_tetromino();
-  auto drop_tetromino() -> bool;
 
 public:
   explicit GameSession(std::optional<int> seed = std::nullopt);
@@ -45,7 +48,7 @@ public:
   [[nodiscard]] auto get_tile_data() const noexcept -> const TileGrid&;
   [[nodiscard]] auto get_bag() const noexcept -> const TetrominoBag&;
 
-  auto try_transformation(Transformation transformation) -> bool;
+  auto try_transformation(Transformation transformation) -> TransformationRes;
   void tick();
 };
 

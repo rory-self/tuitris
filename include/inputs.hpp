@@ -13,7 +13,8 @@ enum Input : std::uint8_t {
   Right = 'd',
   RotateClockwise = 'e',
   RotateAntiClockwise = 'q',
-  Drop = ' ',
+  HardDrop = ' ',
+  SoftDrop,
   None,
 };
 

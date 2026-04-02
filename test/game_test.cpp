@@ -87,7 +87,7 @@ protected:
   GameSessionTest(): game(test_seed) {}
 
   void drop(const std::size_t n = 1) {
-    apply_n_transformations(Transformation::Drop, n);
+    apply_n_transformations(Transformation::HardDrop, n);
   }
 
   void complete_single() {

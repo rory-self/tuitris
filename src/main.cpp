@@ -1,3 +1,4 @@
+#include "game/game_session.hpp"
 #include "tui_colours.hpp"
 #include "inputs.hpp"
 #include "game_window.hpp"
@@ -5,6 +6,7 @@
 
 #include <ncurses.h>
 #include <chrono>
+#include <functional>
 #include <csignal>
 
 namespace {
@@ -79,21 +81,23 @@ void print_basic_info() {
 }
 
 void game_routine(GameSession& game, const GameWindows& game_wins, const Input input, Time& next_tick) {
-  bool moved = false;
-  if (const auto transformation = input_to_transformation(input)) {
-    moved = game.try_transformation(*transformation);
+  const auto transformation_res = std::invoke([&game, input] -> TransformationRes {
+    const auto transformation = input_to_transformation(input);
+    return transformation ? game.try_transformation(*transformation) : TransformationRes::Fail;
+  });
+
+  bool ticked = Clock::now() >= next_tick;
+  if (ticked) {
+    game.tick();
   }
 
-  bool ticked = false;
-  if (Clock::now() >= next_tick) {
-    game.tick();
-    ticked = true;
-
+  const bool reset_tick = transformation_res == TransformationRes::ResetTick;
+  if (ticked or reset_tick) {
     using namespace std::chrono_literals;
     next_tick = Clock::now() + 300ms;
   }
 
-  if (ticked or moved) {
+  if (ticked or reset_tick or transformation_res == TransformationRes::Success) {
     game_wins.update();
   }
 }

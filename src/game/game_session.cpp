@@ -24,9 +24,9 @@ auto GameSession::game_over() const noexcept -> bool {
   return _game_over;
 }
 
-auto GameSession::try_transformation(const Transformation transformation) -> bool {
+auto GameSession::try_transformation(const Transformation transformation) -> TransformationRes {
   if (not _falling_tetromino.has_value()) {
-    return false;
+    return TransformationRes::Fail;
   }
  
   using enum Transformation;
@@ -37,18 +37,16 @@ auto GameSession::try_transformation(const Transformation transformation) -> boo
     case Left:
     case Right:
       return try_move_tetromino(transformation == Right);
-    case Drop:
-      return drop_tetromino();
+    case HardDrop:
+      return hard_drop_tetromino();
+    case SoftDrop:
+      return soft_drop_tetromino();
     default:
       std::unreachable();
   }
 }
 
-auto GameSession::drop_tetromino() -> bool {
-  if (not _falling_tetromino.has_value()) {
-    return false;
-  }
-
+auto GameSession::hard_drop_tetromino() -> TransformationRes {
   while (_falling_tetromino.has_value() and not _game_over) {
     tick();
   }
@@ -56,10 +54,15 @@ auto GameSession::drop_tetromino() -> bool {
   if (not _game_over) {
     drop_new_tetromino();
   }
-  return true;
+  return TransformationRes::Success;
 }
 
-auto GameSession::try_move_tetromino(const bool move_right) -> bool {
+auto GameSession::soft_drop_tetromino() -> TransformationRes {
+  tick();
+  return TransformationRes::ResetTick;
+}
+
+auto GameSession::try_move_tetromino(const bool move_right) -> TransformationRes {
   auto& [tetromino, center_pos] = _falling_tetromino.value();
 
   const int new_center_x = move_right ? center_pos.x + 1 : center_pos.x - 1;
@@ -67,18 +70,18 @@ auto GameSession::try_move_tetromino(const bool move_right) -> bool {
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
   if (_tile_data.can_not_place(new_tile_positions)) {
-    return false;
+    return TransformationRes::Fail;
   }
 
   const TilePositions curr_tile_positions = tetromino.calc_tile_positions(center_pos);
   _tile_data.move(curr_tile_positions, new_tile_positions);
 
   center_pos = new_center_pos;
-  return true;
+  return TransformationRes::Success;
 
 }
 
-auto GameSession::try_rotate_tetromino(const bool clockwise) -> bool {
+auto GameSession::try_rotate_tetromino(const bool clockwise) -> TransformationRes {
   auto& [tetromino, tetromino_center_pos] = _falling_tetromino.value();
 
   const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, _tile_data);
@@ -88,12 +91,12 @@ auto GameSession::try_rotate_tetromino(const bool clockwise) -> bool {
 
   const TilePositions curr_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
   if (not tetromino.try_rotate(tetromino_center_pos, placement_test, clockwise)) {
-    return false;
+    return TransformationRes::Fail;
   }
 
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
   _tile_data.move(curr_tile_positions, new_tile_positions);
-  return true;
+  return TransformationRes::Success;
 }
 
 void GameSession::tick() {

@@ -10,29 +10,32 @@ auto capture_input(const bool game_started) -> Input {
   }
 
   const int raw_input = getch();
+  using enum Input;
   switch (raw_input) {
     case KEY_LEFT:
-      return Input::Left;
+      return Left;
     case KEY_RIGHT:
-      return Input::Right;
+      return Right;
+    case KEY_DOWN:
+      return SoftDrop;
     case ERR:
-      return Input::None;
+      return None;
     default:
       break;
   }
 
   const char input = std::tolower(raw_input);
   switch(input) {
-    case Input::Quit:
-    case Input::Start:
-    case Input::Left:
-    case Input::Right:
-    case Input::RotateClockwise:
-    case Input::RotateAntiClockwise:
-    case Input::Drop:
+    case Quit:
+    case Start:
+    case Left:
+    case Right:
+    case RotateClockwise:
+    case RotateAntiClockwise:
+    case HardDrop:
       return static_cast<Input>(input);
     default:
-      return Input::None;
+      return None;
   }
 }
 
@@ -46,8 +49,10 @@ auto input_to_transformation(const Input input) -> std::optional<Transformation>
       return Transformation::RotateAntiClockwise;
     case Input::RotateClockwise:
       return Transformation::RotateClockwise;
-    case Input::Drop:
-      return Transformation::Drop;
+    case Input::HardDrop:
+      return Transformation::HardDrop;
+    case Input::SoftDrop:
+      return Transformation::SoftDrop;
     default:
       return std::nullopt;
   }

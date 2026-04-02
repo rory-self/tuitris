@@ -8,7 +8,8 @@ enum class Transformation : std::uint8_t {
   Right,
   RotateClockwise,
   RotateAntiClockwise,
-  Drop,
+  HardDrop,
+  SoftDrop,
 };
 
 #endif //TRANSFORMATION_HPP
