@@ -53,11 +53,7 @@ private:
     for (std::size_t i = 0; i < n; i++) {
       game.try_transformation(transformation);
     }
-  }
-
-  void left(const std::size_t n = 1) {
-    apply_n_transformations(Transformation::Left, n);
-  }
+  } 
 
   void right(const std::size_t n = 1) {
     apply_n_transformations(Transformation::Right, n);
@@ -65,10 +61,6 @@ private:
 
   void rotate_clockwise(const std::size_t n = 1) {
     apply_n_transformations(Transformation::RotateClockwise, n);
-  }
-
-  void rotate_anticlockwise(const std::size_t n = 1) {
-    apply_n_transformations(Transformation::RotateAntiClockwise, n);
   }
 
   void flip() {
@@ -86,8 +78,16 @@ protected:
 
   GameSessionTest(): game(test_seed) {}
 
+  void left(const std::size_t n = 1) {
+    apply_n_transformations(Transformation::Left, n);
+  }
+
   void drop(const std::size_t n = 1) {
     apply_n_transformations(Transformation::HardDrop, n);
+  }
+
+  void rotate_anticlockwise(const std::size_t n = 1) {
+    apply_n_transformations(Transformation::RotateAntiClockwise, n);
   }
 
   void complete_single() {
@@ -167,4 +167,12 @@ TEST_F(GameSessionTest, ScoreTetris) {
   
   constexpr unsigned int tetris_score = 1200;
   EXPECT_EQ(game.get_score(), tetris_score);
+}
+
+TEST_F(GameSessionTest, BoundaryRotationTest) {
+  drop();
+
+  rotate_anticlockwise();
+  left(5);
+  ASSERT_NO_THROW(rotate_anticlockwise());
 }
