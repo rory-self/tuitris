@@ -45,7 +45,7 @@ auto TileGrid::end() const -> RawTileGrid::const_iterator {
   return _tile_grid.cend();
 }
 
-auto TileGrid::can_not_place(const TilePositions& tile_positions) const -> bool {
+auto TileGrid::can_not_move_to(const TilePositions& tile_positions) const -> bool {
   const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, this);
   return std::ranges::any_of(tile_positions, is_invalid_placement);
 }
@@ -107,10 +107,9 @@ void TileGrid::move(const TilePositions& old_positions, const TilePositions& new
   std::array<Tile, tiles_in_tetromino> cached_tiles;
 
   for (const auto& [index, pos] : std::ranges::views::enumerate(old_positions)) {
-    Tile& tile = (*this)[pos];
-    cached_tiles.at(index) = tile;
+    cached_tiles.at(index) = (*this)[pos];
 
-    tile = Empty{};
+    (*this)[pos] = Empty{};
   }
 
   for (const auto& [pos, tile] : std::ranges::views::zip(new_positions, cached_tiles)) {

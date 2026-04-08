@@ -19,7 +19,7 @@ void test_offsets_eq(const Tetromino& tetromino, const CoordinateSet& expected_o
   }
 }
 
-[[nodiscard]] auto dummy_placement_method(const TilePositions& tiles) -> bool {
+[[nodiscard]] auto dummy_placement_method(const TilePositions& old_pos, const TilePositions& new_pos) -> bool {
   return true;
 }
 }

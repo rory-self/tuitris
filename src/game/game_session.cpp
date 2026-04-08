@@ -73,7 +73,7 @@ auto GameSession::try_move_tetromino(const bool move_right) -> TransformationRes
   const Coordinates new_center_pos = { .x = new_center_x, .y = center_pos.y };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
-  if (_tile_data.can_not_place(new_tile_positions)) {
+  if (_tile_data.can_not_move_to(new_tile_positions)) {
     return TransformationRes::Fail;
   }
 
@@ -88,13 +88,11 @@ auto GameSession::try_move_tetromino(const bool move_right) -> TransformationRes
 auto GameSession::try_rotate_tetromino(const bool clockwise) -> TransformationRes {
   auto& [tetromino, tetromino_center_pos] = _falling_tetromino.value();
 
-  const TilePositions curr_tile_positions = tetromino.calc_tile_positions(tetromino_center_pos);
-
   const auto& is_invalid_placement = std::bind_front(&TileGrid::is_taken_or_out_of_bounds, _tile_data);
-  auto move = std::bind_front(&TileGrid::move, &_tile_data);
-  const auto try_rotation= [&curr_tile_positions, is_invalid_placement, move](const TilePositions& new_tile_positions) -> bool { 
+  const auto try_rotation = [&](const TilePositions& old_tile_positions, const TilePositions& new_tile_positions) -> bool { 
     if (std::ranges::none_of(new_tile_positions, is_invalid_placement)) {
-      move(curr_tile_positions, new_tile_positions);
+      tetromino_center_pos = new_tile_positions.back();
+      _tile_data.move(old_tile_positions, new_tile_positions);
       return true;
     }
 
@@ -125,7 +123,7 @@ void GameSession::tick() {
   const Coordinates new_center_pos = { .x = tetromino_center_pos.x, .y = tetromino_center_pos.y + 1 };
   const TilePositions new_tile_positions = tetromino.calc_tile_positions(new_center_pos);
 
-  if (_tile_data.can_not_place(new_tile_positions)) {
+  if (_tile_data.can_not_move_to(new_tile_positions)) {
     place_tiles(curr_tile_positions);
     return;
   }

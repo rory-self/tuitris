@@ -26,7 +26,7 @@ public:
   [[nodiscard]] auto operator[](const Coordinates& pos) const -> const Tile&;
   [[nodiscard]] auto operator[](std::size_t y_coord) const -> const TileRow&;
 
-  [[nodiscard]] auto can_not_place(const TilePositions& positions) const -> bool;
+  [[nodiscard]] auto can_not_move_to(const TilePositions& positions) const -> bool;
   [[nodiscard]] auto is_overflowing() const -> bool;
   [[nodiscard]] auto is_taken_or_out_of_bounds(const Coordinates& pos) const -> bool;
 

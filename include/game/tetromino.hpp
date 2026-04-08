@@ -52,7 +52,7 @@ public:
 
   [[nodiscard]] auto calc_tile_positions(const Coordinates& pivot_pos) const -> TilePositions;
   [[nodiscard]] auto try_rotate(const Coordinates& pivot_pos,
-      const std::function<bool(TilePositions)>& placement_method,
+      const std::function<bool(TilePositions, TilePositions)>& placement_method,
       bool clockwise) -> bool;
 };
 
